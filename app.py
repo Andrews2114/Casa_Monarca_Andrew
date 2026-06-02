@@ -241,8 +241,8 @@ def inicializar_db():
         cursorclass=pymysql.cursors.DictCursor,
         autocommit=False
     )
-    with open(SCHEMA_PAATH, 'r', encoding='utf-8') as f:
-        schema = f.read()
+    with open(SCHEMA_PATH, 'r', encoding='utf-8') as f:
+        schema = f.read() #Should work
     cur = con.cursor()
     for stmt in schema.split(';'):
         stmt = stmt.strip()
