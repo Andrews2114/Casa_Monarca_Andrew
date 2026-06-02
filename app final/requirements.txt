@@ -1,5 +1,6 @@
-Flask
-Flask-Session
+flask
+flask-session
 pymysql
 cryptography
 openpyxl
+werkzeug
