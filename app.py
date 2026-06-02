@@ -249,6 +249,7 @@ def inicializar_db():
         if stmt:
             cur.execute(stmt)
     cur.close()
+    con.commit()
 
     # Migración: garantizar que usuarios.rol incluya 'voluntario'.
     try:
