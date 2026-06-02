@@ -1,0 +1,2828 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Casa Monarca — Panel {{ rol_legible }}</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --rosa: #e62055;
+  --rosa-claro: #fce8ef;
+  --rosa-borde: #f5a8c0;
+  --negro: #0e0e0e;
+  --negro-soft: #1c1c1c;
+  --gris-oscuro: #3d3d3d;
+  --gris-medio: #767676;
+  --gris-claro: #efefef;
+  --gris-linea: #e5e5e5;
+  --blanco: #ffffff;
+  --fondo: #f7f6f4;
+
+  --verde-bg: #edf7f0;
+  --verde-borde: #6dbf8a;
+  --verde-texto: #1a5c32;
+
+  --rojo-bg: #fef0f0;
+  --rojo-borde: #e88080;
+  --rojo-texto: #7a1f1f;
+
+  --azul-bg: #eef4fd;
+  --azul-borde: #7daee8;
+  --azul-texto: #1a3e72;
+
+  --amarillo-bg: #faf6ea;
+  --amarillo-borde: #d8ba64;
+  --amarillo-texto: #8a6710;
+
+  --radio-sm: 5px;
+  --radio-md: 9px;
+  --radio-lg: 14px;
+  --radio-xl: 20px;
+
+  --sombra-sm: 0 1px 3px rgba(0,0,0,.08);
+  --fuente: 'DM Sans', sans-serif;
+  --mono: 'DM Mono', monospace;
+  --transicion: .18s ease;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--fuente);
+  background: var(--fondo);
+  color: var(--negro);
+  min-height: 100vh;
+  font-size: 14px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: inherit; text-decoration: none; }
+button, input, select, textarea { font-family: var(--fuente); }
+
+.layout { display: flex; min-height: 100vh; }
+
+.sidebar {
+  width: 220px; min-width: 220px;
+  background: var(--negro);
+  display: flex; flex-direction: column;
+  position: sticky; top: 0; height: 100vh; overflow-y: auto;
+}
+
+.sidebar-logo {
+  padding: 24px 20px 20px;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  display: flex; align-items: center; gap: 12px;
+}
+.sidebar-logo img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; background: var(--blanco); }
+.sidebar-logo-text { display: flex; flex-direction: column; line-height: 1.2; }
+.sidebar-logo-text span:first-child { font-size: 13px; font-weight: 600; color: var(--blanco); }
+.sidebar-logo-text span:last-child { font-size: 10px; color: rgba(255,255,255,.4); text-transform: uppercase; letter-spacing: .08em; }
+
+.sidebar-nav { padding: 16px 10px; flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.nav-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .1em; color: rgba(255,255,255,.28); padding: 8px 10px 4px; margin-top: 8px; }
+
+.nav-item {
+  display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: var(--radio-md);
+  color: rgba(255,255,255,.55); font-size: 13px; font-weight: 500; cursor: pointer;
+  transition: background var(--transicion), color var(--transicion);
+  border: none; background: transparent; width: 100%; text-align: left;
+}
+.nav-item:hover { background: rgba(255,255,255,.07); color: rgba(255,255,255,.85); }
+.nav-item.activo { background: var(--rosa); color: var(--blanco); }
+.nav-item svg { width: 15px; height: 15px; flex-shrink: 0; opacity: .7; }
+.nav-item.activo svg { opacity: 1; }
+
+.sidebar-footer { padding: 16px 10px; border-top: 1px solid rgba(255,255,255,.08); }
+.sidebar-user { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: var(--radio-md); }
+.avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--rosa); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: var(--blanco); flex-shrink: 0; }
+.sidebar-user-info { display: flex; flex-direction: column; line-height: 1.3; min-width: 0; }
+.sidebar-user-info span:first-child { font-size: 12px; font-weight: 500; color: rgba(255,255,255,.75); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sidebar-user-info span:last-child { font-size: 10px; color: rgba(255,255,255,.3); }
+
+.main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+
+.topbar {
+  background: var(--blanco); border-bottom: 1px solid var(--gris-linea);
+  padding: 0 32px; height: 56px; display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 10;
+}
+.topbar-titulo { font-size: 15px; font-weight: 600; color: var(--negro); }
+.topbar-badge { font-size: 11px; padding: 3px 10px; border-radius: 20px; font-weight: 600; border: 1px solid; }
+.topbar-badge.coord { background: var(--azul-bg); color: var(--azul-texto); border-color: var(--azul-borde); }
+.topbar-badge.op { background: var(--verde-bg); color: var(--verde-texto); border-color: var(--verde-borde); }
+
+.contenido { padding: 32px; flex: 1; }
+.vista { display: none; }
+.vista.activa { display: block; }
+
+.card {
+  background: var(--blanco); border: 1px solid var(--gris-linea);
+  border-radius: var(--radio-xl); padding: 28px 32px; box-shadow: var(--sombra-sm);
+  margin-bottom: 20px;
+}
+.card-titulo { font-size: 16px; font-weight: 600; color: var(--negro); margin-bottom: 4px; }
+.card-subtitulo { font-size: 13px; color: var(--gris-medio); margin-bottom: 24px; }
+
+.metricas { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 28px; }
+.metrica { background: var(--blanco); border: 1px solid var(--gris-linea); border-radius: var(--radio-lg); padding: 20px 22px; box-shadow: var(--sombra-sm); }
+.metrica-valor { font-size: 28px; font-weight: 600; color: var(--negro); line-height: 1; margin-bottom: 4px; }
+.metrica-valor.rosa { color: var(--rosa); }
+.metrica-label { font-size: 12px; color: var(--gris-medio); font-weight: 500; }
+
+.encabezado { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px; gap: 16px; }
+.encabezado-texto h1 { font-size: 20px; font-weight: 700; color: var(--negro); margin-bottom: 2px; }
+.encabezado-texto p { font-size: 13px; color: var(--gris-medio); }
+
+/* Acciones rápidas en inicio */
+.acciones-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; margin-top: 8px; }
+.accion-card {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 8px;
+  padding: 16px 18px; border-radius: var(--radio-lg);
+  background: var(--fondo); border: 1.5px solid var(--gris-linea);
+  cursor: pointer; text-align: left;
+  transition: border-color var(--transicion), box-shadow var(--transicion), background var(--transicion);
+}
+.accion-card:hover { border-color: var(--rosa-borde); background: var(--rosa-claro); box-shadow: var(--sombra-sm); }
+.accion-card svg { width: 18px; height: 18px; color: var(--rosa); }
+.accion-card-titulo { font-size: 13px; font-weight: 600; color: var(--negro); }
+.accion-card-desc { font-size: 11px; color: var(--gris-medio); line-height: 1.3; }
+
+/* Tabla */
+.tabla-wrap { overflow-x: auto; }
+.tabla { width: 100%; border-collapse: collapse; font-size: 13px; }
+.tabla thead th { text-align: left; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--gris-medio); padding: 10px 12px; border-bottom: 2px solid var(--gris-linea); white-space: nowrap; }
+.tabla tbody td { padding: 12px 12px; border-bottom: 1px solid var(--gris-linea); color: var(--gris-oscuro); vertical-align: middle; }
+.tabla tbody tr:last-child td { border-bottom: none; }
+.tabla tbody tr:hover td { background: var(--fondo); }
+.nombre-celda { font-weight: 500; color: var(--negro); }
+
+.badge { display: inline-flex; align-items: center; font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 20px; text-transform: uppercase; letter-spacing: .06em; border: 1px solid transparent; }
+.badge-en_transito { background: var(--azul-bg); color: var(--azul-texto); border-color: var(--azul-borde); }
+.badge-solicitante_asilo { background: var(--amarillo-bg); color: var(--amarillo-texto); border-color: var(--amarillo-borde); }
+.badge-deportado { background: var(--rojo-bg); color: var(--rojo-texto); border-color: var(--rojo-borde); }
+.badge-repatriado { background: var(--verde-bg); color: var(--verde-texto); border-color: var(--verde-borde); }
+.badge-otro { background: var(--gris-claro); color: var(--gris-oscuro); border-color: var(--gris-linea); }
+
+.dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 5px; vertical-align: middle; }
+.dot-verde { background: var(--verde-borde); }
+.dot-rojo { background: var(--rojo-borde); }
+.dot-amarillo { background: var(--amarillo-borde); }
+
+.info-usuario { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.info-item { padding: 14px 0; border-bottom: 1px solid var(--gris-linea); }
+.info-item:last-child { border-bottom: none; }
+.info-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--gris-medio); margin-bottom: 4px; }
+.info-valor { font-size: 14px; font-weight: 500; color: var(--negro); }
+.info-valor.mono { font-family: var(--mono); font-size: 12px; color: var(--gris-oscuro); }
+
+/* Botones */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; font-size: 13px; font-weight: 600; padding: 10px 20px; border-radius: var(--radio-md); border: none; cursor: pointer; transition: all var(--transicion); }
+.btn:active { transform: scale(.98); }
+.btn-primary { background: var(--rosa); color: var(--blanco); }
+.btn-primary:hover { background: #c41a47; }
+.btn-ghost { background: transparent; color: var(--gris-oscuro); border: 1.5px solid var(--gris-linea); }
+.btn-ghost:hover { background: var(--gris-claro); }
+.btn-sm { font-size: 11px; padding: 6px 12px; }
+.btn-danger { background: var(--rojo-bg); color: var(--rojo-texto); border: 1px solid var(--rojo-borde); }
+.btn-danger:hover { background: #fdd8d8; }
+
+/* Modal */
+.overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,.45); z-index: 100;
+  align-items: center; justify-content: center;
+  padding: 24px;
+}
+.overlay.abierto { display: flex; }
+.modal {
+  background: var(--blanco); border-radius: var(--radio-xl);
+  width: 100%; max-width: 680px; max-height: 90vh;
+  overflow-y: auto; box-shadow: 0 8px 40px rgba(0,0,0,.18);
+}
+.modal-header {
+  padding: 24px 28px 0;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.modal-titulo { font-size: 16px; font-weight: 700; }
+.modal-cerrar { background: none; border: none; cursor: pointer; padding: 6px; border-radius: var(--radio-sm); color: var(--gris-medio); font-size: 18px; line-height: 1; }
+.modal-cerrar:hover { background: var(--gris-claro); color: var(--negro); }
+.modal-body { padding: 20px 28px 28px; }
+
+/* Formulario */
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.form-grid .full { grid-column: 1 / -1; }
+.form-group { display: flex; flex-direction: column; gap: 5px; }
+.form-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--gris-medio); }
+.form-label.required::after { content: ' *'; color: var(--rosa); }
+.form-control {
+  padding: 9px 12px; border-radius: var(--radio-md);
+  border: 1.5px solid var(--gris-linea); font-size: 13px;
+  background: var(--blanco); color: var(--negro);
+  transition: border-color var(--transicion);
+  width: 100%;
+}
+.form-control:focus { outline: none; border-color: var(--rosa); }
+textarea.form-control { resize: vertical; min-height: 72px; }
+.form-section { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--gris-medio); padding-top: 8px; border-top: 1px solid var(--gris-linea); grid-column: 1 / -1; margin-top: 4px; }
+
+.checkboxes { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 4px; }
+.check-item { display: flex; align-items: center; gap: 7px; font-size: 13px; color: var(--negro); cursor: pointer; }
+.check-item input[type="checkbox"] { width: 15px; height: 15px; accent-color: var(--rosa); cursor: pointer; }
+
+.form-acciones { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--gris-linea); }
+
+.alerta { padding: 10px 14px; border-radius: var(--radio-md); font-size: 13px; margin-bottom: 16px; display: none; }
+.alerta.error { background: var(--rojo-bg); color: var(--rojo-texto); border: 1px solid var(--rojo-borde); }
+.alerta.exito { background: var(--verde-bg); color: var(--verde-texto); border: 1px solid var(--verde-borde); }
+
+@media (max-width: 720px) {
+  .sidebar { width: 200px; min-width: 200px; }
+  .contenido { padding: 20px; }
+  .metricas { grid-template-columns: 1fr; }
+  .info-usuario { grid-template-columns: 1fr; }
+  .form-grid { grid-template-columns: 1fr; }
+  .form-grid .full { grid-column: 1; }
+}
+
+/* ── ARCO: carta imprimible ── */
+@media print {
+  body > * { display: none !important; }
+  #ventana-impresion { display: block !important; position: fixed; inset: 0; background: white; z-index: 9999; }
+}
+.badge-pendiente  { background: var(--amarillo-bg); color: var(--amarillo-texto); border-color: var(--amarillo-borde); }
+.badge-aprobada   { background: var(--verde-bg);    color: var(--verde-texto);    border-color: var(--verde-borde); }
+.badge-rechazada  { background: var(--rojo-bg);     color: var(--rojo-texto);     border-color: var(--rojo-borde); }
+.sol-card { background: var(--amarillo-bg); border: 1px solid var(--amarillo-borde); border-radius: var(--radio-lg); padding: 14px 18px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.sol-info { flex: 1; min-width: 0; }
+.sol-nombre { font-weight: 600; font-size: 13px; color: var(--negro); }
+.sol-meta { font-size: 11px; color: var(--amarillo-texto); margin-top: 2px; }
+.sol-motivo { font-size: 12px; color: var(--gris-oscuro); margin-top: 4px; font-style: italic; }
+.sol-acciones { display: flex; gap: 8px; flex-shrink: 0; }
+</style>
+</head>
+<body>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Logo Casa Monarca">
+      <div class="sidebar-logo-text">
+        <span>Casa Monarca</span>
+        <span>Sistema de certificados</span>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <span class="nav-label">Panel</span>
+      <button class="nav-item activo" id="nav-inicio" onclick="irA('inicio')">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="1" width="6" height="6" rx="1.5"/><rect x="9" y="1" width="6" height="6" rx="1.5"/><rect x="1" y="9" width="6" height="6" rx="1.5"/><rect x="9" y="9" width="6" height="6" rx="1.5"/></svg>
+        Inicio
+      </button>
+
+      <span class="nav-label">Módulos</span>
+      <button class="nav-item" id="nav-registros" onclick="irA('registros')">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 3h12M2 6h12M2 9h8M2 12h5"/><circle cx="13" cy="11" r="2.5"/><path d="M13 9.5V11l.8.8"/></svg>
+        Base de Datos Migrantes
+      </button>
+      {% if rol in ('coord', 'op') %}
+      <button class="nav-item" id="nav-arco" onclick="irA('arco')" style="position:relative;">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 1.5L2 4v4c0 3.3 2.6 5.7 6 6.5 3.4-.8 6-3.2 6-6.5V4L8 1.5z"/><path d="M5.5 8l1.8 1.8 3.2-3.2"/></svg>
+        Derechos ARCO
+        <span id="badge-arco-text" style="margin-left:auto;background:var(--rosa);color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;display:none;"></span>
+      </button>
+      {% endif %}
+      {% if rol in ('op', 'coord') %}
+      <button class="nav-item" id="nav-aprobaciones" onclick="irA('aprobaciones')" style="position:relative;">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 4h12M2 8h8M2 12h5"/><path d="M11 10l1.5 1.5 2.5-2.5"/></svg>
+        Aprobaciones Pendientes
+        <span id="badge-aprobaciones-text" style="margin-left:auto;background:var(--rosa);color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;display:none;"></span>
+      </button>
+      {% endif %}
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="avatar">{{ nombre[:2]|upper }}</div>
+        <div class="sidebar-user-info">
+          <span>{{ nombre }}</span>
+          <span>{{ rol_legible }}</span>
+        </div>
+      </div>
+      <a href="/logout" class="nav-item" style="margin-top:10px;">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 2H3a1 1 0 00-1 1v10a1 1 0 001 1h3"/><path d="M10 11l3-3-3-3M13 8H6"/></svg>
+        Cerrar sesión
+      </a>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <span class="topbar-titulo" id="topbar-titulo">Inicio</span>
+      <span class="topbar-badge {{ rol }}" id="topbar-badge">{{ rol_legible }}</span>
+    </div>
+
+    <div class="contenido">
+
+      <!-- ── VISTA: INICIO ─────────────────── -->
+      <div class="vista activa" id="vista-inicio">
+        <div class="encabezado">
+          <div class="encabezado-texto">
+            <h1>Bienvenido, {{ nombre }}</h1>
+            <p>Panel de {{ rol_legible | lower }} — Casa Monarca</p>
+          </div>
+        </div>
+
+        {% if rol == 'coord' %}
+        <div id="alerta-cert-vencimiento" style="display:none;background:var(--rojo-bg);border:1px solid var(--rojo-borde,#f5c6cb);border-radius:var(--radio-md);padding:12px 16px;margin-bottom:16px;font-size:13px;color:var(--rojo-texto);">
+          <strong>⚠ Tu certificado digital está próximo a vencer:</strong>
+          <span id="alerta-cert-dias-texto"></span>. Contacta al administrador para renovarlo.
+        </div>
+        {% endif %}
+
+        <div class="metricas" {% if rol in ('op', 'coord') %}style="grid-template-columns:repeat(3,1fr);"{% endif %}>
+          <div class="metrica">
+            <div class="metrica-valor rosa">{{ rol_legible }}</div>
+            <div class="metrica-label">Tu rol en el sistema</div>
+          </div>
+          <div class="metrica">
+            <div class="metrica-valor" id="cnt-migrantes">—</div>
+            <div class="metrica-label">Migrantes registrados</div>
+          </div>
+          {% if rol in ('op', 'coord') %}
+          <div class="metrica" style="cursor:pointer;" onclick="irA('aprobaciones')">
+            <div class="metrica-valor" id="cnt-pendientes-op">—</div>
+            <div class="metrica-label">Aprobaciones pendientes</div>
+          </div>
+          {% endif %}
+        </div>
+
+        <div class="card">
+          <p class="card-titulo">Acciones disponibles</p>
+          <div class="acciones-grid">
+            <button class="accion-card" onclick="irA('registros')">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 3h12M2 6h12M2 9h8M2 12h5"/></svg>
+              <span class="accion-card-titulo">Ver registros</span>
+              <span class="accion-card-desc">Consultar todos los migrantes</span>
+            </button>
+            {% if rol in ('coord', 'op') %}
+            <button class="accion-card" onclick="irAYNuevo()">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6.5"/><path d="M8 5v6M5 8h6"/></svg>
+              <span class="accion-card-titulo">Registrar datos</span>
+              <span class="accion-card-desc">Nuevo registro de migrante</span>
+            </button>
+            {% endif %}
+            {% if rol == 'coord' %}
+            <button class="accion-card" onclick="irA('registros')">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M11 2l3 3-7 7H4v-3L11 2z"/><path d="M9 4l3 3"/></svg>
+              <span class="accion-card-titulo">Editar registros</span>
+              <span class="accion-card-desc">Actualizar información de migrantes</span>
+            </button>
+            <button class="accion-card" onclick="irA('registros')">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2v8M4.5 6.5L8 10l3.5-3.5"/><path d="M2 13h12"/></svg>
+              <span class="accion-card-titulo">Solicitar eliminación</span>
+              <span class="accion-card-desc">Enviar solicitud al administrador</span>
+            </button>
+            {% endif %}
+          </div>
+        </div>
+
+        {% if rol == 'op' %}
+        <div class="card">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+            <p class="card-titulo" style="margin-bottom:0;">Últimas validaciones</p>
+            <button class="btn btn-ghost btn-sm" onclick="abrirHistorialOp()">Ver historial completo</button>
+          </div>
+          <p class="card-subtitulo">Los 10 registros más recientes que validaste</p>
+          <div id="op-ultimas-validaciones">
+            <p style="font-size:13px;color:var(--gris-medio);text-align:center;padding:20px 0;">Cargando...</p>
+          </div>
+        </div>
+
+        <div class="card">
+          <p class="card-titulo">Buscar migrante</p>
+          <p class="card-subtitulo">Busca por nombre o folio — haz clic en un resultado para ver sus datos</p>
+          <input type="text" id="inicio-buscar-input"
+                 placeholder="Ej. María González o MIG-202505-0001"
+                 oninput="buscarMigranteInicio(this.value)"
+                 style="width:100%;max-width:480px;padding:9px 12px;border:1.5px solid var(--gris-linea);border-radius:var(--radio-md);font-size:13px;font-family:var(--fuente);outline:none;margin-bottom:16px;">
+          <div id="inicio-buscar-resultados">
+            <p style="font-size:13px;color:var(--gris-medio);text-align:center;padding:20px 0;">Ingresa al menos 2 caracteres para buscar</p>
+          </div>
+        </div>
+        {% endif %}
+
+        <div class="card">
+          <p class="card-titulo">Tu información</p>
+          <p class="card-subtitulo">Datos asociados a tu cuenta</p>
+          <div id="mi-info-contenido">
+            <p style="font-size:13px;color:var(--gris-medio);text-align:center;padding:16px 0;">Cargando...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── VISTA: REGISTROS DE MIGRANTES ─── -->
+      <div class="vista" id="vista-registros">
+        <div class="encabezado">
+          <div class="encabezado-texto">
+            <h1>Base de Datos Migrantes</h1>
+            <p>Información de personas atendidas por Casa Monarca</p>
+          </div>
+          {% if rol in ('coord', 'op') %}
+          <button class="btn btn-primary" onclick="abrirFormulario()">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M8 2v12M2 8h12"/></svg>
+            Nuevo registro
+          </button>
+          {% endif %}
+        </div>
+
+        <!-- Filtros y descarga Excel -->
+        <div style="display:flex;flex-wrap:wrap;align-items:flex-end;gap:10px;margin-bottom:20px;padding:14px 16px;background:var(--blanco);border:1px solid var(--gris-linea);border-radius:var(--radio-md);">
+          <div style="display:flex;flex-direction:column;gap:4px;">
+            <label style="font-size:11px;font-weight:600;color:var(--gris-medio);text-transform:uppercase;letter-spacing:.06em;">Fecha de atención desde</label>
+            <input type="date" id="coord-mig-fecha-inicio" style="padding:7px 10px;border:1px solid var(--gris-linea);border-radius:var(--radio-md);font-size:13px;font-family:var(--fuente);color:var(--negro);outline:none;">
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px;">
+            <label style="font-size:11px;font-weight:600;color:var(--gris-medio);text-transform:uppercase;letter-spacing:.06em;">Hasta</label>
+            <input type="date" id="coord-mig-fecha-fin" style="padding:7px 10px;border:1px solid var(--gris-linea);border-radius:var(--radio-md);font-size:13px;font-family:var(--fuente);color:var(--negro);outline:none;">
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px;">
+            <label style="font-size:11px;font-weight:600;color:var(--gris-medio);text-transform:uppercase;letter-spacing:.06em;">País de origen</label>
+            <input type="text" id="coord-mig-pais" placeholder="Ej: Honduras" style="padding:7px 10px;border:1px solid var(--gris-linea);border-radius:var(--radio-md);font-size:13px;font-family:var(--fuente);color:var(--negro);outline:none;min-width:140px;">
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px;">
+            <label style="font-size:11px;font-weight:600;color:var(--gris-medio);text-transform:uppercase;letter-spacing:.06em;">Grupo de atención</label>
+            <input type="text" id="coord-mig-grupo" placeholder="Ej: solicitante" style="padding:7px 10px;border:1px solid var(--gris-linea);border-radius:var(--radio-md);font-size:13px;font-family:var(--fuente);color:var(--negro);outline:none;min-width:160px;">
+          </div>
+          <button class="btn btn-ghost" onclick="coordDescargarExcel()" style="margin-top:auto;">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 1v8M4 6l3 3 3-3M1 10v1a2 2 0 002 2h8a2 2 0 002-2v-1"/></svg>
+            Descargar Excel
+          </button>
+        </div>
+
+        <!-- Mis solicitudes de eliminación pendientes (coord) -->
+        <div id="coord-sol-seccion" style="display:none;margin-bottom:20px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+            <p style="font-size:13px;font-weight:600;color:var(--amarillo-texto);">
+              Mis solicitudes de eliminación pendientes
+              <span id="coord-sol-count-badge" style="background:var(--amarillo-borde);color:var(--negro);font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;margin-left:8px;"></span>
+              <span style="font-size:11px;font-weight:400;color:var(--gris-medio);margin-left:6px;">— En espera de aprobación del administrador</span>
+            </p>
+          </div>
+          <div id="coord-lista-solicitudes"></div>
+        </div>
+
+        <div class="card" style="padding:0;overflow:hidden;">
+          <div style="padding:12px 16px;border-bottom:1px solid var(--gris-linea);">
+            <input type="text" id="buscar-migrante" placeholder="Buscar por folio, nombre…"
+              oninput="filtrarMigrantes(this.value)"
+              style="width:100%;max-width:400px;padding:8px 12px;border:1px solid var(--gris-linea);border-radius:var(--radio-md);font-size:13px;font-family:var(--fuente);outline:none;">
+          </div>
+          <div class="tabla-wrap">
+            <table class="tabla">
+              <thead>
+                <tr>
+                  <th>Folio</th>
+                  <th>Nombre</th>
+                  <th>País de origen</th>
+                  <th>Grupo de población</th>
+                  <th>Fecha de atención</th>
+                  <th>Género</th>
+                  {% if rol in ('coord', 'op') %}<th>Acciones</th>{% endif %}
+                </tr>
+              </thead>
+              <tbody id="tbody-migrantes">
+                <tr><td colspan="7" style="text-align:center;padding:40px;color:var(--gris-medio)">Cargando...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── VISTA: DERECHOS ARCO ────────── -->
+      {% if rol in ('coord', 'op') %}
+      <div class="vista" id="vista-arco">
+        <div class="encabezado">
+          <div class="encabezado-texto">
+            <h1>Derechos ARCO</h1>
+            <p>Acceso, Rectificación y Cancelación de datos personales</p>
+          </div>
+        </div>
+
+        <div class="card">
+          <p class="card-titulo">Buscar registro</p>
+          <p class="card-subtitulo">Busca por nombre completo o folio del migrante</p>
+          <input type="text" id="arco-buscar-input"
+                 placeholder="Ej. María González o MIG-202505-0001"
+                 oninput="buscarArco(this.value)"
+                 style="width:100%;max-width:480px;padding:9px 12px;border:1.5px solid var(--gris-linea);border-radius:var(--radio-md);font-size:13px;font-family:var(--fuente);outline:none;margin-bottom:16px;">
+          <div id="arco-resultados">
+            <p style="font-size:13px;color:var(--gris-medio);text-align:center;padding:20px 0;">Ingresa al menos 2 caracteres para buscar</p>
+          </div>
+        </div>
+
+        {% if rol == 'coord' %}
+        <div class="card">
+          <p class="card-titulo">Solicitudes de rectificación pendientes</p>
+          <p class="card-subtitulo">Enviadas por el personal operativo — requieren tu aprobación</p>
+          <div id="arco-solicitudes-lista">
+            <p style="font-size:13px;color:var(--gris-medio);text-align:center;padding:20px 0;">Cargando...</p>
+          </div>
+        </div>
+        <div class="card">
+          <p class="card-titulo">Solicitudes de cancelación pendientes</p>
+          <p class="card-subtitulo">Enviadas por operativos — al aprobar se firma con tu clave EC y se escala al administrador</p>
+          <div id="arco-cancelaciones-lista">
+            <p style="font-size:13px;color:var(--gris-medio);text-align:center;padding:20px 0;">Cargando...</p>
+          </div>
+        </div>
+        {% endif %}
+
+        {% if rol == 'op' %}
+        <div class="card">
+          <p class="card-titulo">Mis solicitudes de rectificación</p>
+          <p class="card-subtitulo">Estado de las solicitudes enviadas al coordinador</p>
+          <div id="arco-mis-solicitudes">
+            <p style="font-size:13px;color:var(--gris-medio);text-align:center;padding:20px 0;">Cargando...</p>
+          </div>
+        </div>
+        <div class="card">
+          <p class="card-titulo">Mis solicitudes de cancelación</p>
+          <p class="card-subtitulo">Estado de las solicitudes de eliminación enviadas al coordinador</p>
+          <div id="arco-mis-cancelaciones">
+            <p style="font-size:13px;color:var(--gris-medio);text-align:center;padding:20px 0;">Cargando...</p>
+          </div>
+        </div>
+        {% endif %}
+
+        <!-- Histórico ARCO — mismo frontend para op y coord -->
+        <div class="card">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+            <p class="card-titulo" style="margin-bottom:0;">Histórico de solicitudes ARCO</p>
+            <button class="btn btn-ghost btn-sm" onclick="cargarHistorialArco()">Actualizar</button>
+          </div>
+          <p class="card-subtitulo">Todas las solicitudes de rectificación y cancelación registradas</p>
+          <div id="arco-historial-lista">
+            <p style="font-size:13px;color:var(--gris-medio);text-align:center;padding:20px 0;">Cargando...</p>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- ── VISTA: APROBACIONES (op y coord) ─── -->
+      {% if rol in ('op', 'coord') %}
+      <div class="vista" id="vista-aprobaciones">
+        <div class="encabezado">
+          <div class="encabezado-texto">
+            <h1>Aprobaciones Pendientes</h1>
+            {% if rol == 'op' %}
+            <p>Registros enviados por voluntarios que requieren tu validación y firma digital</p>
+            {% else %}
+            <p>Solicitudes ya firmadas por operativos — al confirmar, tu firma finaliza el registro</p>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="card">
+          <p class="card-titulo">Pendientes de tu acción</p>
+          {% if rol == 'op' %}
+          <p class="card-subtitulo">Revisa los datos del migrante antes de validar</p>
+          {% else %}
+          <p class="card-subtitulo">Cada ticket incluye la firma digital del operativo que lo validó previamente</p>
+          {% endif %}
+          <div id="aprobaciones-pendientes-lista">
+            <p style="font-size:13px;color:var(--gris-medio);text-align:center;padding:20px 0;">Cargando...</p>
+          </div>
+        </div>
+
+        <div class="card">
+          <p class="card-titulo">Aprobaciones Realizadas</p>
+          <p class="card-subtitulo">Registros que has procesado</p>
+          <div id="aprobaciones-historial" style="max-height:380px;overflow-y:auto;">
+            <p style="font-size:13px;color:var(--gris-medio);text-align:center;padding:20px 0;">Cargando...</p>
+          </div>
+        </div>
+
+        {% if rol == 'coord' %}
+        <div class="card">
+          <p class="card-titulo">Mis solicitudes de eliminación de registros</p>
+          <p class="card-subtitulo">Solicitudes que has enviado al administrador</p>
+          <div id="coord-mis-elim-lista">
+            <p style="font-size:13px;color:var(--gris-medio);text-align:center;padding:20px 0;">Cargando...</p>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: FORMULARIO MIGRANTE ──────────────────── -->
+<div class="overlay" id="overlay-migrante">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-titulo" id="modal-titulo-form">Nuevo registro</span>
+      <button class="modal-cerrar" onclick="cerrarFormulario()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="alerta error" id="alerta-form"></div>
+
+      <form id="form-migrante" class="form-grid">
+        <input type="hidden" id="mig-id" value="">
+
+        <span class="form-section">Datos de atención <span style="font-weight:400;color:var(--rosa);font-size:10px;">* obligatorio</span></span>
+
+        <div class="form-group">
+          <label class="form-label required">Fecha de atención</label>
+          <input class="form-control" id="mig-fecha-atencion" type="date">
+        </div>
+        <div class="form-group"><!-- spacer --></div>
+
+        <span class="form-section">Datos personales</span>
+
+        <div class="form-group">
+          <label class="form-label required">Nombre de pila <span style="font-weight:400;">(sin apellidos)</span></label>
+          <input class="form-control" id="mig-nombre-pila" type="text" placeholder="Ej. María">
+        </div>
+        <div class="form-group">
+          <label class="form-label required">Primer apellido</label>
+          <input class="form-control" id="mig-primer-apellido" type="text" placeholder="Ej. González">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Segundo apellido <span style="font-weight:400;">(opcional)</span></label>
+          <input class="form-control" id="mig-segundo-apellido" type="text" placeholder="Ej. Ruiz">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Número telefónico de contacto</label>
+          <input class="form-control" id="mig-telefono" type="tel" placeholder="Ej. +504 9812 3456">
+        </div>
+
+        <div class="form-group full">
+          <label class="form-label required">Género</label>
+          <div class="checkboxes">
+            <label class="check-item"><input type="radio" name="mig-genero" value="Hombre" onchange="autoSeleccionarGrupoPoblacion()"> Hombre</label>
+            <label class="check-item"><input type="radio" name="mig-genero" value="Mujer" onchange="autoSeleccionarGrupoPoblacion()"> Mujer</label>
+            <label class="check-item"><input type="radio" name="mig-genero" value="No binario/a" onchange="autoSeleccionarGrupoPoblacion()"> No binario/a</label>
+            <label class="check-item"><input type="radio" name="mig-genero" value="Prefiero no especificar" onchange="autoSeleccionarGrupoPoblacion()"> Prefiero no especificar</label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label required">País de origen</label>
+          <select class="form-control" id="mig-pais">
+            <option value="">— Seleccionar —</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Departamento / Estado</label>
+          <input class="form-control" id="mig-depto" type="text" placeholder="Ej. Cortés">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Estado civil</label>
+          <select class="form-control" id="mig-estado-civil">
+            <option value="">— Seleccionar —</option>
+            <option>Soltero/a</option>
+            <option>Casado/a</option>
+            <option>Unión libre</option>
+            <option>Divorciado/a</option>
+            <option>Viudo/a</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label required">Fecha de nacimiento</label>
+          <input class="form-control" id="mig-fecha-nac" type="date" oninput="calcularEdad('mig-fecha-nac','mig-edad'); autoSeleccionarGrupoPoblacion()">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Edad</label>
+          <input class="form-control" id="mig-edad" type="number" min="0" max="120" placeholder="Se calcula automáticamente">
+        </div>
+        <div class="form-group"><!-- spacer --></div>
+
+        <div class="form-group full">
+          <label class="form-label required">¿A qué grupo de población pertenece?</label>
+          <div class="checkboxes" style="flex-direction:column;gap:10px;">
+            <label class="check-item"><input type="radio" name="mig-grupo" value="Adulto (18-59 años)"> Adulto (18-59 años)</label>
+            <label class="check-item"><input type="radio" name="mig-grupo" value="Adulto mayor (+60 años)"> Adulto mayor (+60 años)</label>
+            <label class="check-item"><input type="radio" name="mig-grupo" value="Niña acompañada"> Niña acompañada</label>
+            <label class="check-item"><input type="radio" name="mig-grupo" value="Niño acompañado"> Niño acompañado</label>
+            <label class="check-item"><input type="radio" name="mig-grupo" value="Adolescente hombre acompañado"> Adolescente hombre acompañado</label>
+            <label class="check-item"><input type="radio" name="mig-grupo" value="Adolescente mujer acompañada"> Adolescente mujer acompañada</label>
+            <label class="check-item"><input type="radio" name="mig-grupo" value="NNA No acompañado"> NNA No acompañado</label>
+          </div>
+        </div>
+
+        <div class="form-acciones full">
+          <button type="button" class="btn btn-ghost" onclick="cerrarFormulario()">Cancelar</button>
+          <button type="button" class="btn btn-primary" onclick="guardarMigrante()">Guardar registro</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: SOLICITAR ELIMINACIÓN ────────────────── -->
+<div class="overlay" id="overlay-solicitud">
+  <div class="modal" style="max-width:460px;">
+    <div class="modal-header">
+      <span class="modal-titulo">Solicitar eliminación</span>
+      <button class="modal-cerrar" onclick="cerrarSolicitud()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:13px;color:var(--gris-oscuro);margin-bottom:16px;">
+        Estás solicitando al administrador la eliminación del registro de
+        <strong id="sol-nombre-migrante"></strong>. El registro no se eliminará
+        hasta que el administrador lo apruebe.
+      </p>
+      <div class="alerta error" id="alerta-sol"></div>
+      <div class="form-group">
+        <label class="form-label required">Motivo de la solicitud</label>
+        <textarea class="form-control" id="sol-motivo" placeholder="Explica por qué se debe eliminar este registro..."></textarea>
+      </div>
+      <div class="form-acciones">
+        <button class="btn btn-ghost" onclick="cerrarSolicitud()">Cancelar</button>
+        <button class="btn btn-danger" onclick="enviarSolicitud()">Enviar solicitud</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODALES ARCO ──────────────────────────────────────── -->
+
+<!-- Acceso: carta imprimible -->
+<div class="overlay" id="overlay-arco-acceso">
+  <div class="modal" style="max-width:740px;">
+    <div class="modal-header">
+      <span class="modal-titulo">Acceso a datos — Derecho ARCO</span>
+      <button class="modal-cerrar" onclick="cerrarArcoAcceso()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="arco-carta" style="font-family:Georgia,serif;font-size:13px;line-height:1.75;padding:4px 8px;"></div>
+      <div class="form-acciones" style="margin-top:16px;padding-top:16px;border-top:1px solid var(--gris-linea);">
+        <button class="btn btn-ghost" onclick="cerrarArcoAcceso()">Cerrar</button>
+        <button class="btn btn-primary" onclick="imprimirAcceso()">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="6" width="12" height="8" rx="1"/><path d="M4 6V3a1 1 0 011-1h6a1 1 0 011 1v3"/><line x1="5" y1="11" x2="11" y2="11"/><line x1="5" y1="13" x2="9" y2="13"/></svg>
+          Imprimir
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Rectificación: formulario con valores actuales editables -->
+<div class="overlay" id="overlay-arco-rect">
+  <div class="modal" style="max-width:740px;">
+    <div class="modal-header">
+      <span class="modal-titulo" id="modal-rect-titulo">Solicitar rectificación</span>
+      <button class="modal-cerrar" onclick="cerrarArcoRect()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="alerta error" id="alerta-rect"></div>
+      <p style="font-size:12px;margin-bottom:16px;padding:10px 14px;background:var(--azul-bg);border-radius:var(--radio-md);border:1px solid var(--azul-borde);color:var(--azul-texto);" id="rect-info-rol">
+        Modifica únicamente los campos que requieren corrección.
+      </p>
+      <div class="form-grid">
+        <span class="form-section">Nombre</span>
+        <div class="form-group">
+          <label class="form-label">Nombre de pila</label>
+          <input class="form-control" id="rect-nombre-pila" type="text">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Primer apellido</label>
+          <input class="form-control" id="rect-primer-apellido" type="text">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Segundo apellido</label>
+          <input class="form-control" id="rect-segundo-apellido" type="text">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Fecha de atención</label>
+          <input class="form-control" id="rect-fecha-atencion" type="date">
+        </div>
+
+        <span class="form-section">Datos personales</span>
+        <div class="form-group">
+          <label class="form-label">Teléfono de contacto</label>
+          <input class="form-control" id="rect-telefono" type="tel">
+        </div>
+        <div class="form-group">
+          <label class="form-label">País de origen</label>
+          <select class="form-control" id="rect-pais">
+            <option value="">— Seleccionar —</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Departamento / Estado</label>
+          <input class="form-control" id="rect-depto" type="text">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Estado civil</label>
+          <select class="form-control" id="rect-estado-civil">
+            <option value="">— Seleccionar —</option>
+            <option>Soltero/a</option><option>Casado/a</option>
+            <option>Unión libre</option><option>Divorciado/a</option><option>Viudo/a</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Fecha de nacimiento</label>
+          <input class="form-control" id="rect-fecha-nac" type="date">
+        </div>
+
+        <div class="form-group full">
+          <label class="form-label">Género</label>
+          <div class="checkboxes">
+            <label class="check-item"><input type="radio" name="rect-genero" value="Hombre"> Hombre</label>
+            <label class="check-item"><input type="radio" name="rect-genero" value="Mujer"> Mujer</label>
+            <label class="check-item"><input type="radio" name="rect-genero" value="No binario/a"> No binario/a</label>
+            <label class="check-item"><input type="radio" name="rect-genero" value="Prefiero no especificar"> Prefiero no especificar</label>
+          </div>
+        </div>
+        <div class="form-group full">
+          <label class="form-label">Grupo de población</label>
+          <div class="checkboxes" style="flex-direction:column;gap:8px;">
+            <label class="check-item"><input type="radio" name="rect-grupo" value="Adulto (18-59 años)"> Adulto (18-59 años)</label>
+            <label class="check-item"><input type="radio" name="rect-grupo" value="Adulto mayor (+60 años)"> Adulto mayor (+60 años)</label>
+            <label class="check-item"><input type="radio" name="rect-grupo" value="Niña acompañada"> Niña acompañada</label>
+            <label class="check-item"><input type="radio" name="rect-grupo" value="Niño acompañado"> Niño acompañado</label>
+            <label class="check-item"><input type="radio" name="rect-grupo" value="Adolescente hombre acompañado"> Adolescente hombre acompañado</label>
+            <label class="check-item"><input type="radio" name="rect-grupo" value="Adolescente mujer acompañada"> Adolescente mujer acompañada</label>
+            <label class="check-item"><input type="radio" name="rect-grupo" value="NNA No acompañado"> NNA No acompañado</label>
+          </div>
+        </div>
+
+        <div class="form-acciones full">
+          <button class="btn btn-ghost" onclick="cerrarArcoRect()">Cancelar</button>
+          <button class="btn btn-primary" id="btn-enviar-rect" onclick="enviarRect()">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2L7 9M14 2l-4 12-3-5-5-3 12-4z"/></svg>
+            <span id="btn-enviar-rect-label">Enviar al coordinador</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Cancelación: solicitar eliminación al admin -->
+<div class="overlay" id="overlay-arco-cancel">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal-header">
+      <span class="modal-titulo">Solicitar cancelación — Derecho ARCO</span>
+      <button class="modal-cerrar" onclick="cerrarArcoCancel()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:13px;color:var(--gris-oscuro);margin-bottom:16px;" id="cancel-descripcion">
+        Solicitas la eliminación del registro de <strong id="cancel-nombre"></strong>.
+        La solicitud se enviará al coordinador para su validación.
+      </p>
+      <div class="alerta error" id="alerta-cancel"></div>
+      <div class="form-group">
+        <label class="form-label required">Motivo de la cancelación</label>
+        <textarea class="form-control" id="cancel-motivo" placeholder="Explica el motivo conforme a los Derechos ARCO…"></textarea>
+      </div>
+      <div class="form-acciones" style="margin-top:16px;">
+        <button class="btn btn-ghost" onclick="cerrarArcoCancel()">Cancelar</button>
+        <button class="btn btn-danger" id="btn-enviar-cancel" onclick="enviarCancel()">Enviar al coordinador</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Resolver cancelación de operativo (solo coord) -->
+{% if rol == 'coord' %}
+<div class="overlay" id="overlay-arco-resolver-cancel">
+  <div class="modal" style="max-width:560px;">
+    <div class="modal-header">
+      <span class="modal-titulo">Revisar solicitud de cancelación</span>
+      <button class="modal-cerrar" onclick="cerrarResolverCancel()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="resolver-cancel-info"></div>
+      <div class="alerta error" id="alerta-resolver-cancel"></div>
+      <div class="form-acciones" style="margin-top:16px;">
+        <button class="btn btn-ghost" onclick="cerrarResolverCancel()">Cancelar</button>
+        <button class="btn btn-danger" onclick="resolverCancelacion('rechazar')">Rechazar</button>
+        <button class="btn btn-primary" onclick="resolverCancelacion('aprobar')">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 7l4 4 6-6"/></svg>
+          Aprobar y escalar al admin
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Resolver rectificación (solo coord) -->
+{% if rol == 'coord' %}
+<div class="overlay" id="overlay-arco-resolver">
+  <div class="modal" style="max-width:680px;">
+    <div class="modal-header">
+      <span class="modal-titulo">Revisar solicitud de rectificación</span>
+      <button class="modal-cerrar" onclick="cerrarResolver()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="resolver-info"></div>
+      <div class="alerta error" id="alerta-resolver"></div>
+      <div class="form-group" style="margin-top:8px;">
+        <label class="form-label">Motivo (requerido solo si rechazas)</label>
+        <textarea class="form-control" id="resolver-motivo" placeholder="Explica al operativo por qué no se aplica el cambio…" style="min-height:56px;"></textarea>
+      </div>
+      <div class="form-acciones" style="margin-top:16px;">
+        <button class="btn btn-ghost" onclick="cerrarResolver()">Cancelar</button>
+        <button class="btn btn-danger" onclick="resolverRect('rechazar')">Rechazar</button>
+        <button class="btn btn-primary" onclick="resolverRect('aprobar')">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 7l4 4 6-6"/></svg>
+          Aprobar y aplicar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Modal: revisar ticket de voluntario (solo op) -->
+{% if rol == 'op' %}
+<div class="overlay" id="overlay-revisar-ticket-op">
+  <div class="modal" style="max-width:600px;">
+    <div class="modal-header">
+      <span class="modal-titulo">Revisar solicitud de registro</span>
+      <button class="modal-cerrar" onclick="cerrarRevisarTicketOp()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="ticket-op-info"></div>
+      <div class="alerta" style="background:var(--amarillo-bg);border-color:var(--amarillo-borde);color:var(--amarillo-texto);margin-top:8px;display:block;font-size:12.5px;">
+        <strong>Firma digital:</strong> Al validar, firmarás este ticket con tu clave ECDSA y la solicitud se escalará al coordinador para confirmación final.
+      </div>
+      <div class="alerta error" id="alerta-ticket-op" style="display:none;"></div>
+      <div id="ticket-op-rechazo" style="display:none;">
+        <div class="form-group" style="margin-top:12px;">
+          <label class="form-label required">Motivo del rechazo</label>
+          <textarea class="form-control" id="ticket-op-motivo" placeholder="Explica por qué no procede este registro…" style="min-height:64px;"></textarea>
+        </div>
+      </div>
+      <div class="form-acciones" style="margin-top:16px;">
+        <button class="btn btn-ghost" onclick="cerrarRevisarTicketOp()">Cancelar</button>
+        <button class="btn btn-danger" id="btn-ticket-op-rechazar" onclick="toggleTicketOpRechazo()">Rechazar</button>
+        <button class="btn btn-danger" id="btn-ticket-op-confirmar-rechazo" style="display:none;" onclick="resolverTicketOp('rechazar')">Confirmar rechazo</button>
+        <button class="btn btn-primary" id="btn-ticket-op-validar" onclick="resolverTicketOp('validar')">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 7l4 4 6-6"/></svg>
+          Validar y firmar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Modal: historial completo de validaciones (solo op) -->
+{% if rol == 'op' %}
+<div class="overlay" id="overlay-historial-op">
+  <div class="modal" style="max-width:780px;">
+    <div class="modal-header">
+      <span class="modal-titulo">Historial completo de validaciones</span>
+      <button class="modal-cerrar" onclick="cerrarHistorialOp()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="historial-op-contenido">
+        <p style="font-size:13px;color:var(--gris-medio);text-align:center;padding:20px 0;">Cargando...</p>
+      </div>
+      <div class="form-acciones" style="margin-top:16px;padding-top:16px;border-top:1px solid var(--gris-linea);">
+        <button class="btn btn-ghost" onclick="cerrarHistorialOp()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Modal: confirmar registro pendiente (solo coord) -->
+{% if rol == 'coord' %}
+<div class="overlay" id="overlay-confirmar-registro-coord">
+  <div class="modal" style="max-width:620px;">
+    <div class="modal-header">
+      <span class="modal-titulo">Confirmar registro de migrante</span>
+      <button class="modal-cerrar" onclick="cerrarConfirmarRegistroCoord()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="registro-coord-info"></div>
+      <div class="alerta" style="background:var(--amarillo-bg);border-color:var(--amarillo-borde);color:var(--amarillo-texto);margin-top:8px;display:block;font-size:12.5px;">
+        <strong>Firma digital:</strong> Al confirmar, firmarás con tu clave ECDSA. El migrante se insertará en la base de datos con la cadena de firmas completa.
+      </div>
+      <div class="alerta error" id="alerta-registro-coord" style="display:none;"></div>
+      <div id="registro-coord-rechazo" style="display:none;">
+        <div class="form-group" style="margin-top:12px;">
+          <label class="form-label required">Motivo del rechazo</label>
+          <textarea class="form-control" id="registro-coord-motivo" placeholder="Explica por qué no procede este registro…" style="min-height:64px;"></textarea>
+        </div>
+      </div>
+      <div class="form-acciones" style="margin-top:16px;">
+        <button class="btn btn-ghost" onclick="cerrarConfirmarRegistroCoord()">Cancelar</button>
+        <button class="btn btn-danger" id="btn-coord-rechazar" onclick="toggleCoordRechazo()">Rechazar</button>
+        <button class="btn btn-danger" id="btn-coord-confirmar-rechazo" style="display:none;" onclick="resolverRegistroCoord('rechazar')">Confirmar rechazo</button>
+        <button class="btn btn-primary" id="btn-coord-aprobar" onclick="resolverRegistroCoord('aprobar')">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 7l4 4 6-6"/></svg>
+          Confirmar e insertar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Modal: detalle de aprobación realizada (op y coord) -->
+{% if rol in ('op', 'coord') %}
+<div class="overlay" id="overlay-detalle-aprobacion">
+  <div class="modal" style="max-width:680px;">
+    <div class="modal-header">
+      <span class="modal-titulo">Detalle del registro</span>
+      <button class="modal-cerrar" onclick="cerrarDetalleAprobacion()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="detalle-aprobacion-contenido">
+        <p style="font-size:13px;color:var(--gris-medio);text-align:center;padding:20px 0;">Cargando...</p>
+      </div>
+      <div class="form-acciones" style="margin-top:16px;padding-top:16px;border-top:1px solid var(--gris-linea);">
+        <button class="btn btn-ghost" onclick="cerrarDetalleAprobacion()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<script>
+const ROL = '{{ rol }}';
+const PUEDE_CREAR  = ['coord','op'].includes(ROL);
+const PUEDE_EDITAR = ['coord'].includes(ROL);
+const PUEDE_SOLICITAR = ROL === 'coord';
+
+let migranteEditandoId = null;
+let solicitudMigranteId = null;
+
+const topbarTitulos = {
+  inicio:       'Inicio',
+  registros:    'Base de Datos Migrantes',
+  arco:         'Derechos ARCO',
+  aprobaciones: 'Aprobaciones Pendientes',
+};
+
+function irA(vista) {
+  document.querySelectorAll('.vista').forEach(v => v.classList.remove('activa'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('activo'));
+  const vistaEl = document.getElementById('vista-' + vista);
+  if (vistaEl) vistaEl.classList.add('activa');
+  document.getElementById('topbar-titulo').textContent = topbarTitulos[vista] || '—';
+  const navEl = document.getElementById('nav-' + vista);
+  if (navEl) navEl.classList.add('activo');
+  if (vista === 'registros') cargarMigrantes();
+  if (vista === 'arco') cargarArco();
+  if (vista === 'aprobaciones') cargarAprobacionesPorRol();
+}
+
+function irAYNuevo() {
+  irA('registros');
+  setTimeout(abrirFormulario, 80);
+}
+
+function _validarRangoFecha(valor, nombre) {
+  if (!valor) return null;
+  const d   = new Date(valor + 'T00:00:00');
+  const hoy = new Date(); hoy.setHours(0,0,0,0);
+  if (d > hoy) return `${nombre} no puede ser una fecha futura.`;
+  const hace100 = new Date(hoy); hace100.setFullYear(hoy.getFullYear() - 100);
+  if (d < hace100) return `${nombre} no puede ser hace más de 100 años.`;
+  return null;
+}
+
+// ── CARGA DINÁMICA DE PAÍSES ───────────────────────────────────
+let _paisesCache = null;
+async function _poblarSelectPaises(...selectIds) {
+  if (!_paisesCache) {
+    try {
+      const res = await fetch('https://restcountries.com/v3.1/all?fields=name,translations');
+      const data = await res.json();
+      _paisesCache = data
+        .map(c => c.translations?.spa?.common || c.name.common)
+        .filter(Boolean).sort();
+    } catch(e) {
+      console.error('Error cargando países:', e);
+      _paisesCache = [];
+    }
+  }
+  for (const id of selectIds) {
+    const sel = document.getElementById(id);
+    if (!sel) continue;
+    const current = sel.value;
+    sel.innerHTML = '<option value="">— Seleccionar —</option>';
+    _paisesCache.forEach(name => {
+      const opt = document.createElement('option');
+      opt.value = name; opt.textContent = name;
+      sel.appendChild(opt);
+    });
+    const otro = document.createElement('option');
+    otro.value = 'Otro'; otro.textContent = 'Otro';
+    sel.appendChild(otro);
+    if (current) sel.value = current;
+  }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  const hoy     = new Date().toISOString().slice(0, 10);
+  const hace100 = new Date(new Date().setFullYear(new Date().getFullYear() - 100)).toISOString().slice(0, 10);
+  ['mig-fecha-atencion','mig-fecha-nac','rect-fecha-atencion','rect-fecha-nac'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.max = hoy; el.min = hace100; }
+  });
+  actualizarBadgePendientes();
+  _poblarSelectPaises('mig-pais', 'rect-pais');
+});
+
+async function actualizarBadgePendientes() {
+  try {
+    const res = await fetch('/api/pendientes_count');
+    if (!res.ok) return;
+    const data = await res.json();
+    const total = data.total || 0;
+    const badge = document.getElementById('badge-aprobaciones-text');
+    if (badge) {
+      badge.textContent = total;
+      badge.style.display = total > 0 ? '' : 'none';
+    }
+    const cnt = document.getElementById('cnt-pendientes-op');
+    if (cnt) cnt.textContent = total;
+    const arcoTotal = data.arco_total || 0;
+    const badgeArco = document.getElementById('badge-arco-text');
+    if (badgeArco) {
+      badgeArco.textContent = arcoTotal;
+      badgeArco.style.display = arcoTotal > 0 ? '' : 'none';
+    }
+  } catch(_) {}
+}
+
+function calcularEdad(inputFechaId, inputEdadId) {
+  const val = document.getElementById(inputFechaId).value;
+  const edadEl = document.getElementById(inputEdadId);
+  if (!val) { edadEl.value = ''; return; }
+  const hoy = new Date();
+  const nac = new Date(val);
+  let edad = hoy.getFullYear() - nac.getFullYear();
+  const m = hoy.getMonth() - nac.getMonth();
+  if (m < 0 || (m === 0 && hoy.getDate() < nac.getDate())) edad--;
+  edadEl.value = edad >= 0 ? edad : '';
+}
+
+function autoSeleccionarGrupoPoblacion() {
+  const edad = parseInt(document.getElementById('mig-edad').value);
+  if (isNaN(edad) || edad < 0) return;
+  const genero = document.querySelector('input[name="mig-genero"]:checked')?.value || '';
+  let grupo = '';
+  if (edad >= 60) grupo = 'Adulto mayor (+60 años)';
+  else if (edad >= 18) grupo = 'Adulto (18-59 años)';
+  else if (edad >= 13 && genero === 'Hombre') grupo = 'Adolescente hombre acompañado';
+  else if (edad >= 13 && genero === 'Mujer') grupo = 'Adolescente mujer acompañada';
+  else if (edad < 13 && genero === 'Hombre') grupo = 'Niño acompañado';
+  else if (edad < 13 && genero === 'Mujer') grupo = 'Niña acompañada';
+  if (grupo) {
+    const r = document.querySelector(`input[name="mig-grupo"][value="${grupo}"]`);
+    if (r) r.checked = true;
+  }
+}
+
+// ── REGISTROS ─────────────────────────────────────────────────
+let listaMigrantes = [];
+
+async function cargarMigrantes() {
+  const tbody = document.getElementById('tbody-migrantes');
+  tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--gris-medio)">Cargando...</td></tr>';
+  try {
+    const promesas = [fetch('/api/migrantes')];
+    if (ROL === 'coord') promesas.push(fetch('/admin/api/solicitudes'));
+    const [resMig, resSol] = await Promise.all(promesas);
+    listaMigrantes = await resMig.json();
+
+    if (ROL === 'coord' && resSol) {
+      const sols = (await resSol.json()).filter(s => s.solicitado_por === '{{ usuario }}');
+      const solSec = document.getElementById('coord-sol-seccion');
+      if (sols.length) {
+        solSec.style.display = 'block';
+        document.getElementById('coord-sol-count-badge').textContent = sols.length;
+        document.getElementById('coord-lista-solicitudes').innerHTML = sols.map(s => `
+          <div class="sol-card">
+            <div class="sol-info">
+              <div class="sol-nombre">${s.migrante_nombre} <span style="font-weight:400;font-size:11px;color:var(--gris-medio)">${s.folio}</span></div>
+              <div class="sol-meta">Enviada el ${(s.fecha_solicitud || '').slice(0,10)} · Pendiente de aprobación del administrador</div>
+              ${s.motivo ? `<div class="sol-motivo">"${s.motivo}"</div>` : ''}
+            </div>
+            <div class="sol-acciones">
+              <span class="badge badge-pendiente" style="font-size:11px;">Pendiente</span>
+            </div>
+          </div>`).join('');
+      } else {
+        solSec.style.display = 'none';
+      }
+    }
+
+    const q = document.getElementById('buscar-migrante')?.value || '';
+    filtrarMigrantes(q);
+  } catch(e) {
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--rojo-texto)">Error al cargar registros</td></tr>`;
+  }
+}
+
+async function coordResolverSol(solId, aprobar) {
+  const fd = new FormData(); fd.append('aprobar', aprobar ? '1' : '0');
+  try {
+    const res  = await fetch(`/admin/api/solicitudes/${solId}/resolver`, { method: 'POST', body: fd });
+    const data = await res.json();
+    if (!res.ok || data.error) { alert(data.error || 'Error al resolver'); return; }
+    cargarMigrantes();
+  } catch(e) { alert('Error de conexión'); }
+}
+
+async function cargarMisEliminaciones() {
+  const cont = document.getElementById('coord-mis-elim-lista');
+  if (!cont) return;
+  cont.innerHTML = '<p style="font-size:13px;color:var(--gris-medio);text-align:center;padding:20px 0;">Cargando...</p>';
+  try {
+    const res  = await fetch('/api/mis_solicitudes_eliminacion');
+    if (!res.ok) { cont.innerHTML = '<p style="color:var(--rojo-texto);font-size:13px;text-align:center;padding:16px;">Error al cargar.</p>'; return; }
+    const lista = await res.json();
+    if (!lista.length) {
+      cont.innerHTML = '<p style="font-size:13px;color:var(--gris-medio);text-align:center;padding:20px 0;">No has enviado solicitudes de eliminación.</p>';
+      return;
+    }
+    const badgeClase = { pendiente: 'badge-pendiente', aprobada: 'badge-aprobada', rechazada: 'badge-rechazada' };
+    const badgeLabel = { pendiente: 'Pendiente', aprobada: 'Aprobada', rechazada: 'Rechazada' };
+    cont.innerHTML = `
+      <div style="overflow-x:auto;">
+      <table class="tabla" style="font-size:12px;">
+        <thead><tr>
+          <th>Folio</th><th>Migrante</th><th>Fecha envío</th><th>Motivo</th><th>Estado</th><th>Resuelto por</th>
+        </tr></thead>
+        <tbody>
+          ${lista.map(r => {
+            const fecha = (r.fecha_solicitud || r.fecha_eliminacion || '').slice(0, 10);
+            const resueltoPor = r.resuelto_por || r.aprobado_por || '—';
+            const motivoCorto = r.motivo ? r.motivo.slice(0, 60) + (r.motivo.length > 60 ? '…' : '') : '—';
+            const arcoTag = r.es_arco ? '<span class="badge" style="background:#ede9fe;color:#6d28d9;border-color:#c4b5fd;font-size:9px;margin-left:4px;">ARCO</span>' : '';
+            return `<tr>
+              <td style="font-family:var(--mono);font-size:11px;">${r.folio || '—'}</td>
+              <td>${r.nombre_migrante || '—'}</td>
+              <td style="white-space:nowrap;">${fecha}</td>
+              <td style="font-style:${r.motivo ? 'normal' : 'italic'};color:var(--gris-oscuro);">${motivoCorto}</td>
+              <td><span class="badge ${badgeClase[r.estado] || ''}">${badgeLabel[r.estado] || r.estado}</span>${arcoTag}</td>
+              <td>${resueltoPor}</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+      </div>`;
+  } catch(e) {
+    cont.innerHTML = '<p style="color:var(--rojo-texto);font-size:13px;text-align:center;padding:16px;">Error de conexión.</p>';
+  }
+}
+
+function coordDescargarExcel() {
+  const p = new URLSearchParams();
+  const fi = document.getElementById('coord-mig-fecha-inicio').value;
+  const ff = document.getElementById('coord-mig-fecha-fin').value;
+  const pa = document.getElementById('coord-mig-pais').value.trim();
+  const gr = document.getElementById('coord-mig-grupo').value.trim();
+  if (fi) p.set('fecha_inicio', fi);
+  if (ff) p.set('fecha_fin', ff);
+  if (pa) p.set('pais_origen', pa);
+  if (gr) p.set('grupo_poblacion', gr);
+  window.open('/admin/descargar/migrantes?' + p.toString(), '_blank');
+}
+
+function filtrarMigrantes(q) {
+  const tbody = document.getElementById('tbody-migrantes');
+  const cols = PUEDE_CREAR ? 7 : 6;
+  const term = q.trim().toLowerCase();
+  const lista = term
+    ? listaMigrantes.filter(m =>
+        (m.nombre || '').toLowerCase().includes(term) ||
+        (m.folio || '').toLowerCase().includes(term) ||
+        (m.pais_origen || '').toLowerCase().includes(term))
+    : listaMigrantes;
+
+  if (!lista.length) {
+    tbody.innerHTML = `<tr><td colspan="${cols}" style="text-align:center;padding:40px;color:var(--gris-medio)">${term ? 'Sin resultados para "' + term + '"' : 'No hay registros todavía'}</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = lista.map(m => {
+    const grupoBadge = m.grupo_poblacion
+      ? `<span class="badge badge-otro" style="text-transform:none;">${m.grupo_poblacion}</span>`
+      : '—';
+    const acciones = PUEDE_EDITAR ? `
+      <button class="btn btn-ghost btn-sm" onclick="abrirFormulario(${JSON.stringify(m).replace(/"/g,'&quot;')})">Editar</button>
+      ${PUEDE_SOLICITAR ? `<button class="btn btn-danger btn-sm" style="margin-left:6px;" onclick="abrirSolicitud(${m.id},'${m.nombre.replace(/'/g,"\\'")}')">Solicitar eliminación</button>` : ''}
+    ` : '';
+    return `
+      <tr>
+        <td class="serial-celda" style="font-family:var(--mono);font-size:11px;color:var(--azul-texto);cursor:pointer;text-decoration:underline;" onclick="verMigrante(${m.id})">${m.folio}</td>
+        <td class="nombre-celda">${m.nombre}</td>
+        <td>${m.pais_origen || '—'}</td>
+        <td>${grupoBadge}</td>
+        <td style="font-size:12px;">${m.fecha_atencion || '—'}</td>
+        <td>${m.genero || '—'}</td>
+        ${PUEDE_CREAR ? `<td>${acciones}</td>` : ''}
+      </tr>`;
+  }).join('');
+}
+
+// ── FORMULARIO CREAR / EDITAR ──────────────────────────────────
+function abrirFormulario(migrante) {
+  migranteEditandoId = migrante ? migrante.id : null;
+  document.getElementById('modal-titulo-form').textContent = migrante ? 'Editar registro' : 'Nuevo registro';
+  document.getElementById('alerta-form').style.display = 'none';
+  document.getElementById('mig-id').value = migrante ? migrante.id : '';
+
+  // Descomponer nombre en partes si es edición
+  const partes = (migrante?.nombre || '').split(' ');
+  document.getElementById('mig-nombre-pila').value     = partes[0] || '';
+  document.getElementById('mig-primer-apellido').value = partes[1] || '';
+  document.getElementById('mig-segundo-apellido').value = partes.slice(2).join(' ') || '';
+
+  document.getElementById('mig-fecha-atencion').value  = (migrante?.fecha_atencion || '').slice(0, 10);
+  document.getElementById('mig-telefono').value        = migrante?.telefono_contacto || '';
+  document.getElementById('mig-pais').value            = migrante?.pais_origen || '';
+  document.getElementById('mig-depto').value           = migrante?.departamento_estado || '';
+  document.getElementById('mig-estado-civil').value    = migrante?.estado_civil || '';
+  document.getElementById('mig-fecha-nac').value       = (migrante?.fecha_nacimiento || '').slice(0, 10);
+  calcularEdad('mig-fecha-nac', 'mig-edad');
+
+  // Género
+  document.querySelectorAll('input[name="mig-genero"]').forEach(r => {
+    r.checked = r.value === (migrante?.genero || '');
+  });
+  // Grupo de población
+  document.querySelectorAll('input[name="mig-grupo"]').forEach(r => {
+    r.checked = r.value === (migrante?.grupo_poblacion || '');
+  });
+
+  document.getElementById('overlay-migrante').classList.add('abierto');
+}
+
+function cerrarFormulario() {
+  document.getElementById('overlay-migrante').classList.remove('abierto');
+  migranteEditandoId = null;
+}
+
+async function guardarMigrante() {
+  const alerta      = document.getElementById('alerta-form');
+  const nombrePila  = document.getElementById('mig-nombre-pila').value.trim();
+  const primerAp    = document.getElementById('mig-primer-apellido').value.trim();
+  const fechaNac    = document.getElementById('mig-fecha-nac').value;
+  const pais        = document.getElementById('mig-pais').value;
+  const genero      = document.querySelector('input[name="mig-genero"]:checked')?.value || '';
+  const grupo       = document.querySelector('input[name="mig-grupo"]:checked')?.value || '';
+
+  if (!nombrePila || !primerAp || !fechaNac || !pais || !genero || !grupo) {
+    alerta.textContent = 'Completa todos los campos obligatorios (marcados con *).';
+    alerta.style.display = 'block';
+    return;
+  }
+
+  const errFnac = _validarRangoFecha(fechaNac, 'Fecha de nacimiento');
+  if (errFnac) { alerta.textContent = errFnac; alerta.style.display = 'block'; return; }
+  const fechaAt = document.getElementById('mig-fecha-atencion').value;
+  const errFat  = _validarRangoFecha(fechaAt, 'Fecha de atención');
+  if (errFat)  { alerta.textContent = errFat;  alerta.style.display = 'block'; return; }
+
+  alerta.style.display = 'none';
+
+  const fd = new FormData();
+  fd.append('nombre_pila',        nombrePila);
+  fd.append('primer_apellido',    primerAp);
+  fd.append('segundo_apellido',   document.getElementById('mig-segundo-apellido').value.trim());
+  fd.append('fecha_atencion',     fechaAt);
+  fd.append('telefono_contacto',  document.getElementById('mig-telefono').value.trim());
+  fd.append('genero',             genero);
+  fd.append('pais_origen',        pais);
+  fd.append('departamento_estado', document.getElementById('mig-depto').value.trim());
+  fd.append('estado_civil',       document.getElementById('mig-estado-civil').value);
+  fd.append('fecha_nacimiento',   fechaNac);
+  fd.append('grupo_poblacion',    grupo);
+
+  const esEdicion = !!migranteEditandoId;
+  const url    = esEdicion ? `/api/migrantes/${migranteEditandoId}` : '/api/migrantes';
+  const method = esEdicion ? 'PUT' : 'POST';
+
+  try {
+    const res  = await fetch(url, { method, body: fd });
+    const data = await res.json();
+    if (!res.ok || data.error) {
+      alerta.textContent = data.error || 'Error al guardar.';
+      alerta.style.display = 'block';
+      return;
+    }
+    cerrarFormulario();
+    cargarMigrantes();
+  } catch(e) {
+    alerta.textContent = 'Error de conexión. Revisa la consola.';
+    alerta.style.display = 'block';
+    console.error(e);
+  }
+}
+
+// ── SOLICITUD ELIMINACIÓN ──────────────────────────────────────
+function abrirSolicitud(id, nombre) {
+  solicitudMigranteId = id;
+  document.getElementById('sol-nombre-migrante').textContent = nombre;
+  document.getElementById('sol-motivo').value = '';
+  document.getElementById('alerta-sol').style.display = 'none';
+  document.getElementById('overlay-solicitud').classList.add('abierto');
+}
+
+function cerrarSolicitud() {
+  document.getElementById('overlay-solicitud').classList.remove('abierto');
+  solicitudMigranteId = null;
+}
+
+async function enviarSolicitud() {
+  const motivo = document.getElementById('sol-motivo').value.trim();
+  const alerta = document.getElementById('alerta-sol');
+  if (!motivo) {
+    alerta.textContent = 'El motivo es obligatorio.';
+    alerta.style.display = 'block';
+    return;
+  }
+  alerta.style.display = 'none';
+
+  const fd = new FormData();
+  fd.append('motivo', motivo);
+  try {
+    const res = await fetch(`/api/migrantes/${solicitudMigranteId}/solicitar_eliminacion`, { method: 'POST', body: fd });
+    const data = await res.json();
+    if (!res.ok || data.error) {
+      alerta.textContent = data.error || 'Error al enviar.';
+      alerta.style.display = 'block';
+      return;
+    }
+    cerrarSolicitud();
+    cargarMigrantes();
+    cargarMisEliminaciones();
+    toast('Solicitud enviada. El administrador debe aprobarla.');
+  } catch(e) {
+    alerta.textContent = 'Error de conexión.';
+    alerta.style.display = 'block';
+  }
+}
+
+// Cerrar overlays al hacer click fuera del modal
+document.getElementById('overlay-migrante').addEventListener('click', function(e) {
+  if (e.target === this) cerrarFormulario();
+});
+document.getElementById('overlay-solicitud').addEventListener('click', function(e) {
+  if (e.target === this) cerrarSolicitud();
+});
+
+// ── CADENA DE FIRMAS (helper reutilizable) ────────────────────
+function _renderCadenaFirmas(pasos) {
+  const filaStep = (p) => {
+    const bgMap = {1:'#e8eaf6', 2:'var(--amarillo-bg)', 3:'var(--verde-bg)'};
+    const colMap = {1:'#3949ab', 2:'var(--amarillo-texto)', 3:'var(--verde-texto)'};
+    const bg  = bgMap[p.paso] || 'var(--gris-claro)';
+    const col = colMap[p.paso] || 'var(--gris-medio)';
+    const pendienteHtml = p.pendiente
+      ? `<span style="color:var(--gris-medio);font-style:italic;font-size:11px;">Pendiente…</span>`
+      : '';
+    return `<tr>
+      <td style="padding:8px 12px;border-bottom:1px solid var(--gris-linea);white-space:nowrap;">
+        <span style="display:inline-block;background:${bg};color:${col};font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;">Paso ${p.paso}</span>
+      </td>
+      <td style="padding:8px 12px;border-bottom:1px solid var(--gris-linea);">${p.accion}</td>
+      <td style="padding:8px 12px;border-bottom:1px solid var(--gris-linea);font-family:var(--mono);font-size:12px;">${p.responsable || pendienteHtml}</td>
+      <td style="padding:8px 12px;border-bottom:1px solid var(--gris-linea);font-size:12px;">${p.fecha || '—'}</td>
+    </tr>`;
+  };
+  return `
+    <p style="font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--gris-medio);margin:12px 0 8px;">Cadena de firmas</p>
+    <div style="overflow-x:auto;">
+      <table style="width:100%;border-collapse:collapse;font-size:13px;background:var(--gris-claro);border-radius:8px;overflow:hidden;">
+        <thead>
+          <tr style="font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--gris-medio);">
+            <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--gris-linea);">Paso</th>
+            <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--gris-linea);">Acción</th>
+            <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--gris-linea);">Responsable</th>
+            <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--gris-linea);">Fecha</th>
+          </tr>
+        </thead>
+        <tbody>${pasos.map(filaStep).join('')}</tbody>
+      </table>
+    </div>`;
+}
+
+// ── DERECHOS ARCO ─────────────────────────────────────────────
+let arcoMigrante  = null;
+let arcoOriginal  = {};
+let resolverSolId = null;
+
+function cargarArco() {
+  // Ajustar textos según rol
+  if (ROL === 'coord') {
+    document.getElementById('rect-info-rol').textContent =
+      'Modifica únicamente los campos que requieren corrección. Como coordinador, los cambios se aplicarán de inmediato.';
+    document.getElementById('btn-enviar-rect-label').textContent = 'Aplicar cambios';
+    document.getElementById('btn-enviar-cancel').textContent = 'Enviar al administrador';
+    document.getElementById('cancel-descripcion').innerHTML =
+      'Solicitas la eliminación del registro de <strong id="cancel-nombre"></strong>. La solicitud se firmará con tu clave EC y se enviará al <strong>administrador</strong>.';
+    cargarSolicitudesRect();
+    cargarSolicitudesCancel();
+  }
+  if (ROL === 'op') {
+    cargarMisSolicitudes();
+    cargarMisSolicitudesCancel();
+  }
+  cargarHistorialArco();
+}
+
+function _badgeArco(esArco) {
+  if (!esArco) return '';
+  return '<span class="badge" style="background:#ede9fe;color:#6d28d9;border-color:#c4b5fd;font-size:9px;margin-left:4px;">ARCO</span>';
+}
+
+function _badgeEstadoArco(estado) {
+  const m = {
+    pendiente: 'badge-pendiente',
+    aprobada:  'badge-aprobada',
+    rechazada: 'badge-rechazada',
+  };
+  return `<span class="badge ${m[estado]||'badge-otro'}">${estado||'—'}</span>`;
+}
+
+async function cargarHistorialArco() {
+  const cont = document.getElementById('arco-historial-lista');
+  if (!cont) return;
+  cont.innerHTML = '<p style="font-size:13px;color:var(--gris-medio);text-align:center;padding:20px 0;">Cargando...</p>';
+  try {
+    const res  = await fetch('/api/arco/historial_completo');
+    const data = await res.json();
+    if (!data.length) {
+      cont.innerHTML = '<p style="font-size:13px;color:var(--gris-medio);text-align:center;padding:20px 0;">No hay solicitudes registradas</p>';
+      return;
+    }
+    const tipoLabel = { rectificacion: 'Rectificación', cancelacion: 'Cancelación (op→coord)', cancelacion_firmada: 'Cancelación firmada' };
+    cont.innerHTML = `<div class="tabla-wrap"><table class="tabla">
+      <thead><tr><th>Tipo</th><th>Folio</th><th>Migrante</th><th>Solicitado por</th><th>Fecha</th><th>Estado</th><th>Resuelto por</th><th>Firma</th></tr></thead>
+      <tbody>${data.map(s => {
+        const firma = s.firma_coord
+          ? `<span style="font-size:10px;color:var(--verde-texto);font-weight:600;">✓ Firmado</span>`
+          : '—';
+        return `<tr>
+          <td style="white-space:nowrap;">${tipoLabel[s.tipo]||s.tipo}${_badgeArco(s.es_arco)}</td>
+          <td style="font-family:var(--mono);font-size:11px;">${s.folio||'—'}</td>
+          <td class="nombre-celda">${s.migrante_nombre||'—'}</td>
+          <td style="font-size:12px;">${s.solicitado_por||'—'}</td>
+          <td style="font-size:12px;">${(s.fecha_solicitud||'').slice(0,10)}</td>
+          <td>${_badgeEstadoArco(s.estado)}</td>
+          <td style="font-size:12px;">${s.resuelto_por||'—'}</td>
+          <td>${firma}</td>
+        </tr>`;
+      }).join('')}
+      </tbody></table></div>`;
+  } catch(e) {
+    cont.innerHTML = '<p style="color:var(--rojo-texto);text-align:center;padding:16px;">Error al cargar historial</p>';
+  }
+}
+
+async function buscarArco(q) {
+  const cont = document.getElementById('arco-resultados');
+  if (q.trim().length < 2) {
+    cont.innerHTML = '<p style="font-size:13px;color:var(--gris-medio);text-align:center;padding:20px 0;">Ingresa al menos 2 caracteres para buscar</p>';
+    return;
+  }
+  cont.innerHTML = '<p style="font-size:13px;color:var(--gris-medio);text-align:center;padding:20px 0;">Buscando...</p>';
+  try {
+    const res  = await fetch('/api/arco/buscar?q=' + encodeURIComponent(q));
+    const data = await res.json();
+    if (!data.length) {
+      cont.innerHTML = `<p style="font-size:13px;color:var(--gris-medio);text-align:center;padding:20px 0;">Sin resultados para "${q}"</p>`;
+      return;
+    }
+    cont.innerHTML = `<div class="tabla-wrap"><table class="tabla">
+      <thead><tr><th>Folio</th><th>Nombre</th><th>País</th><th>Grupo de población</th><th>Acciones ARCO</th></tr></thead>
+      <tbody>${data.map(m => `
+        <tr>
+          <td style="font-family:var(--mono);font-size:11px;">${m.folio}</td>
+          <td class="nombre-celda">${m.nombre}</td>
+          <td>${m.pais_origen || '—'}</td>
+          <td style="font-size:12px;">${m.grupo_poblacion || '—'}</td>
+          <td style="white-space:nowrap;">
+            <button class="btn btn-ghost btn-sm" onclick="verAcceso(${m.id})">Acceso</button>
+            <button class="btn btn-ghost btn-sm" style="margin-left:4px;color:var(--azul-texto);border-color:var(--azul-borde);" onclick="abrirArcoRect(${m.id})">Rectificar</button>
+            <button class="btn btn-danger btn-sm" style="margin-left:4px;" onclick="abrirArcoCancel(${m.id},'${m.nombre.replace(/'/g,"\\'")}')">Cancelar</button>
+          </td>
+        </tr>`).join('')}
+      </tbody></table></div>`;
+  } catch(e) {
+    cont.innerHTML = '<p style="color:var(--rojo-texto);text-align:center;padding:20px 0;">Error al buscar</p>';
+  }
+}
+
+// ── ACCESO ──
+async function verAcceso(id) {
+  try {
+    const res = await fetch('/api/arco/acceso/' + id);
+    if (!res.ok) { alert('No se pudo obtener la información'); return; }
+    const m = await res.json();
+    const hoy = new Date().toLocaleDateString('es-MX', {year:'numeric',month:'long',day:'numeric'});
+    const campos = [
+      ['Nombre completo',      m.nombre],
+      ['Fecha de atención',    m.fecha_atencion   || '—'],
+      ['País de origen',       m.pais_origen      || '—'],
+      ['Departamento / Estado',m.departamento_estado || '—'],
+      ['Género',               m.genero           || '—'],
+      ['Estado civil',         m.estado_civil     || '—'],
+      ['Fecha de nacimiento',  m.fecha_nacimiento || '—'],
+      ['Grupo de población',   m.grupo_poblacion  || '—'],
+      ['Teléfono de contacto', m.telefono_contacto|| '—'],
+    ];
+    document.getElementById('arco-carta').innerHTML = `
+      <div style="text-align:center;margin-bottom:20px;padding-bottom:14px;border-bottom:2px solid #222;">
+        <p style="font-size:18px;font-weight:700;margin:0;">CASA MONARCA</p>
+        <p style="font-size:11px;color:#666;margin:4px 0 0;">Albergue para Personas Migrantes · Monterrey, N.L.</p>
+      </div>
+      <p style="text-align:right;margin-bottom:18px;font-size:12px;">${hoy}</p>
+      <p style="font-weight:700;margin-bottom:12px;">EJERCICIO DEL DERECHO DE ACCESO — DERECHOS ARCO</p>
+      <p style="margin-bottom:18px;">En respuesta a la solicitud de acceso a datos personales con folio <strong>${m.folio}</strong>, se presenta la información registrada en nuestros sistemas:</p>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:20px;">
+        ${campos.map(([k,v]) => `<tr style="border-bottom:1px solid #e5e5e5;">
+          <td style="padding:8px 12px;font-weight:600;width:42%;color:#555;font-size:12px;">${k}</td>
+          <td style="padding:8px 12px;font-size:13px;">${v}</td>
+        </tr>`).join('')}
+      </table>
+      <p style="font-size:11px;color:#888;border-top:1px solid #ddd;padding-top:14px;line-height:1.6;">
+        Información confidencial protegida conforme a la <em>Ley Federal de Protección de Datos Personales en Posesión de los Particulares (LFPDPPP)</em>.<br>
+        <strong>Casa Monarca</strong> · Documento generado el ${hoy}
+      </p>`;
+    document.getElementById('overlay-arco-acceso').classList.add('abierto');
+  } catch(e) { alert('Error al obtener datos'); }
+}
+
+function cerrarArcoAcceso() {
+  document.getElementById('overlay-arco-acceso').classList.remove('abierto');
+}
+
+function imprimirAcceso() {
+  const carta = document.getElementById('arco-carta').innerHTML;
+  const win = window.open('', '_blank', 'width=820,height=640');
+  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Acceso ARCO — Casa Monarca</title>
+    <style>body{font-family:Georgia,serif;font-size:13px;line-height:1.75;padding:48px;max-width:700px;margin:0 auto;}
+    table{width:100%;border-collapse:collapse;}@media print{@page{margin:2cm;}}</style>
+  </head><body>${carta}</body></html>`);
+  win.document.close();
+  win.focus();
+  setTimeout(() => win.print(), 400);
+}
+
+// ── RECTIFICACIÓN ──
+async function abrirArcoRect(id) {
+  try {
+    const res = await fetch('/api/arco/acceso/' + id);
+    if (!res.ok) { alert('No se pudo obtener la información'); return; }
+    const m = await res.json();
+    arcoMigrante = m;
+    arcoOriginal  = { ...m };
+    const partes = (m.nombre || '').split(' ');
+    document.getElementById('rect-nombre-pila').value     = partes[0] || '';
+    document.getElementById('rect-primer-apellido').value = partes[1] || '';
+    document.getElementById('rect-segundo-apellido').value = partes.slice(2).join(' ') || '';
+    document.getElementById('rect-fecha-atencion').value  = m.fecha_atencion || '';
+    document.getElementById('rect-telefono').value        = m.telefono_contacto || '';
+    document.getElementById('rect-pais').value            = m.pais_origen || '';
+    document.getElementById('rect-depto').value           = m.departamento_estado || '';
+    document.getElementById('rect-estado-civil').value    = m.estado_civil || '';
+    document.getElementById('rect-fecha-nac').value       = m.fecha_nacimiento || '';
+    document.querySelectorAll('input[name="rect-genero"]').forEach(r => r.checked = r.value === m.genero);
+    document.querySelectorAll('input[name="rect-grupo"]').forEach(r => r.checked = r.value === m.grupo_poblacion);
+    document.getElementById('alerta-rect').style.display = 'none';
+    document.getElementById('modal-rect-titulo').textContent = `Rectificación: ${m.nombre} · Folio ${m.folio}`;
+    document.getElementById('overlay-arco-rect').classList.add('abierto');
+  } catch(e) { alert('Error al obtener datos'); }
+}
+
+function cerrarArcoRect() {
+  document.getElementById('overlay-arco-rect').classList.remove('abierto');
+}
+
+async function enviarRect() {
+  const alerta = document.getElementById('alerta-rect');
+  const m = arcoMigrante;
+  if (!m) return;
+  const nombrePila = document.getElementById('rect-nombre-pila').value.trim();
+  const primerAp   = document.getElementById('rect-primer-apellido').value.trim();
+  const segundoAp  = document.getElementById('rect-segundo-apellido').value.trim();
+  const nombre     = [nombrePila, primerAp, segundoAp].filter(Boolean).join(' ');
+  const nuevos = {
+    nombre,
+    fecha_atencion:      document.getElementById('rect-fecha-atencion').value || null,
+    telefono_contacto:   document.getElementById('rect-telefono').value.trim() || null,
+    pais_origen:         document.getElementById('rect-pais').value || null,
+    departamento_estado: document.getElementById('rect-depto').value.trim() || null,
+    estado_civil:        document.getElementById('rect-estado-civil').value || null,
+    fecha_nacimiento:    document.getElementById('rect-fecha-nac').value || null,
+    genero:              document.querySelector('input[name="rect-genero"]:checked')?.value || null,
+    grupo_poblacion:     document.querySelector('input[name="rect-grupo"]:checked')?.value || null,
+  };
+  const orig = arcoOriginal;
+  const cambios = {};
+  const cmp = (a, b) => (a || '') !== (b || '');
+  if (cmp(nuevos.nombre,              orig.nombre))              cambios.nombre              = nuevos.nombre;
+  if (cmp(nuevos.fecha_atencion,      orig.fecha_atencion))      cambios.fecha_atencion      = nuevos.fecha_atencion;
+  if (cmp(nuevos.telefono_contacto,   orig.telefono_contacto))   cambios.telefono_contacto   = nuevos.telefono_contacto;
+  if (cmp(nuevos.pais_origen,         orig.pais_origen))         cambios.pais_origen         = nuevos.pais_origen;
+  if (cmp(nuevos.departamento_estado, orig.departamento_estado)) cambios.departamento_estado = nuevos.departamento_estado;
+  if (cmp(nuevos.estado_civil,        orig.estado_civil))        cambios.estado_civil        = nuevos.estado_civil;
+  if (cmp(nuevos.fecha_nacimiento,    orig.fecha_nacimiento))    cambios.fecha_nacimiento    = nuevos.fecha_nacimiento;
+  if (cmp(nuevos.genero,              orig.genero))              cambios.genero              = nuevos.genero;
+  if (cmp(nuevos.grupo_poblacion,     orig.grupo_poblacion))     cambios.grupo_poblacion     = nuevos.grupo_poblacion;
+  const errRFnac = _validarRangoFecha(nuevos.fecha_nacimiento, 'Fecha de nacimiento');
+  if (errRFnac) { alerta.textContent = errRFnac; alerta.style.display = 'block'; return; }
+  const errRFat = _validarRangoFecha(nuevos.fecha_atencion, 'Fecha de atención');
+  if (errRFat) { alerta.textContent = errRFat; alerta.style.display = 'block'; return; }
+
+  if (!Object.keys(cambios).length) {
+    alerta.textContent = 'No se detectaron cambios respecto a los datos actuales.';
+    alerta.style.display = 'block';
+    return;
+  }
+  alerta.style.display = 'none';
+  const fd = new FormData();
+  fd.append('migrante_id', m.id);
+  fd.append('cambios_json', JSON.stringify(cambios));
+  try {
+    const res  = await fetch('/api/arco/rectificacion', { method: 'POST', body: fd });
+    const data = await res.json();
+    if (!res.ok || data.error) { alerta.textContent = data.error || 'Error'; alerta.style.display = 'block'; return; }
+    cerrarArcoRect();
+    if (data.aplicado) {
+      alert('Cambios aplicados correctamente al registro.');
+    } else {
+      alert('Solicitud enviada al coordinador para aprobación.');
+      cargarMisSolicitudes();
+    }
+  } catch(e) { alerta.textContent = 'Error de conexión'; alerta.style.display = 'block'; }
+}
+
+// ── CANCELACIÓN ──
+function abrirArcoCancel(id, nombre) {
+  arcoMigrante = { id, nombre };
+  // Actualizar el nombre dentro del párrafo (puede haber sido reemplazado por innerHTML)
+  const nomEl = document.getElementById('cancel-nombre');
+  if (nomEl) nomEl.textContent = nombre;
+  document.getElementById('cancel-motivo').value = '';
+  document.getElementById('alerta-cancel').style.display = 'none';
+  document.getElementById('overlay-arco-cancel').classList.add('abierto');
+}
+
+function cerrarArcoCancel() {
+  document.getElementById('overlay-arco-cancel').classList.remove('abierto');
+}
+
+async function enviarCancel() {
+  const alerta = document.getElementById('alerta-cancel');
+  const motivo = document.getElementById('cancel-motivo').value.trim();
+  if (!motivo) { alerta.textContent = 'El motivo es obligatorio.'; alerta.style.display = 'block'; return; }
+  alerta.style.display = 'none';
+  const fd = new FormData();
+  fd.append('motivo', motivo);
+  // Op → coordinator; Coord → admin (firmado con EC)
+  let url;
+  if (ROL === 'op') {
+    fd.append('migrante_id', arcoMigrante.id);
+    url = '/api/arco/cancelacion_op';
+  } else {
+    url = '/api/arco/cancelacion/' + arcoMigrante.id;
+  }
+  try {
+    const res  = await fetch(url, { method: 'POST', body: fd });
+    let data = {};
+    try { data = await res.json(); } catch(_) {}
+    if (!res.ok || data.error) {
+      alerta.textContent = data.error || `Error del servidor (${res.status})`;
+      alerta.style.display = 'block';
+      return;
+    }
+    cerrarArcoCancel();
+    if (ROL === 'op') {
+      alert('Solicitud de cancelación enviada al coordinador para validación.');
+      cargarMisSolicitudesCancel();
+    } else {
+      alert('Solicitud de cancelación firmada y enviada al administrador.');
+    }
+  } catch(e) {
+    alerta.textContent = 'Sin conexión al servidor. Verifica que el servidor esté corriendo.';
+    alerta.style.display = 'block';
+  }
+}
+
+// ── COORDINADOR: solicitudes pendientes ──
+async function cargarSolicitudesRect() {
+  const cont = document.getElementById('arco-solicitudes-lista');
+  if (!cont) return;
+  try {
+    const res  = await fetch('/api/arco/solicitudes_rect');
+    const data = await res.json();
+    if (!data.length) {
+      cont.innerHTML = '<p style="font-size:13px;color:var(--gris-medio);text-align:center;padding:20px 0;">No hay solicitudes pendientes</p>';
+      return;
+    }
+    cont.innerHTML = `<div class="tabla-wrap"><table class="tabla">
+      <thead><tr><th>Folio</th><th>Nombre</th><th>Solicitado por</th><th>Fecha</th><th></th></tr></thead>
+      <tbody>${data.map(s => `<tr>
+        <td style="font-family:var(--mono);font-size:11px;">${s.folio}</td>
+        <td class="nombre-celda">${s.migrante_nombre}</td>
+        <td style="font-size:12px;">${s.solicitado_por}</td>
+        <td style="font-size:12px;">${(s.fecha_solicitud||'').slice(0,10)}</td>
+        <td><button class="btn btn-primary btn-sm" onclick="abrirResolver(${s.id},${JSON.stringify(s).replace(/"/g,'&quot;')})">Revisar</button></td>
+      </tr>`).join('')}</tbody></table></div>`;
+  } catch(e) {
+    cont.innerHTML = '<p style="color:var(--rojo-texto);text-align:center;padding:16px;">Error al cargar</p>';
+  }
+}
+
+async function abrirResolver(sid, sol) {
+  resolverSolId = sid;
+  try {
+    const res2 = await fetch('/api/arco/acceso/' + sol.migrante_id);
+    const actual = res2.ok ? await res2.json() : {};
+    let cambios = {};
+    try { cambios = JSON.parse(sol.cambios_json || '{}'); } catch(e) {}
+    const etiquetas = {
+      nombre:'Nombre', fecha_atencion:'Fecha de atención', pais_origen:'País de origen',
+      departamento_estado:'Depto/Estado', estado_civil:'Estado civil', genero:'Género',
+      fecha_nacimiento:'Fecha de nacimiento', grupo_poblacion:'Grupo de población',
+      telefono_contacto:'Teléfono',
+    };
+    const filas = Object.entries(cambios).map(([k,v]) => `
+      <tr style="border-bottom:1px solid var(--gris-linea);">
+        <td style="padding:8px 12px;font-size:12px;font-weight:600;color:var(--gris-medio);">${etiquetas[k]||k}</td>
+        <td style="padding:8px 12px;font-size:13px;">${actual[k]||'—'}</td>
+        <td style="padding:8px 12px;font-size:13px;color:var(--azul-texto);font-weight:500;">${v||'—'}</td>
+      </tr>`).join('');
+    const cadenaHtml = _renderCadenaFirmas([
+      { paso: 1, accion: 'Solicitud enviada', responsable: sol.solicitado_por, fecha: (sol.fecha_solicitud||'').slice(0,10), firma: null },
+      { paso: 2, accion: 'Aprobación coordinador', responsable: '', fecha: '', firma: null, pendiente: true },
+    ]);
+    document.getElementById('resolver-info').innerHTML = `
+      <p style="font-size:13px;margin-bottom:12px;">
+        <strong>${sol.migrante_nombre}</strong> · Folio: ${sol.folio}<br>
+        <span style="color:var(--gris-medio);font-size:12px;">Solicitado por <strong>${sol.solicitado_por}</strong> el ${(sol.fecha_solicitud||'').slice(0,10)}</span>
+      </p>
+      <div class="tabla-wrap" style="margin-bottom:16px;"><table class="tabla">
+        <thead><tr>
+          <th>Campo</th>
+          <th>Valor actual</th>
+          <th style="color:var(--azul-texto);">Valor propuesto</th>
+        </tr></thead>
+        <tbody>${filas}</tbody>
+      </table></div>
+      ${cadenaHtml}`;
+    document.getElementById('resolver-motivo').value = '';
+    document.getElementById('alerta-resolver').style.display = 'none';
+    document.getElementById('overlay-arco-resolver').classList.add('abierto');
+  } catch(e) { alert('Error al cargar solicitud'); }
+}
+
+function cerrarResolver() {
+  document.getElementById('overlay-arco-resolver').classList.remove('abierto');
+}
+
+async function resolverRect(accion) {
+  const alerta = document.getElementById('alerta-resolver');
+  const motivo = document.getElementById('resolver-motivo').value.trim();
+  if (accion === 'rechazar' && !motivo) {
+    alerta.textContent = 'Escribe el motivo del rechazo para notificar al operativo.';
+    alerta.style.display = 'block';
+    return;
+  }
+  alerta.style.display = 'none';
+  const fd = new FormData();
+  fd.append('accion', accion === 'aprobar' ? 'aprobar' : 'rechazar');
+  fd.append('motivo', motivo);
+  try {
+    const res  = await fetch('/api/arco/solicitudes_rect/' + resolverSolId + '/resolver', { method: 'POST', body: fd });
+    const data = await res.json();
+    if (!res.ok || data.error) { alerta.textContent = data.error || 'Error'; alerta.style.display = 'block'; return; }
+    cerrarResolver();
+    cargarSolicitudesRect();
+    alert(accion === 'aprobar' ? 'Cambios aplicados correctamente.' : 'Solicitud rechazada. El operativo verá el motivo en su panel.');
+  } catch(e) { alerta.textContent = 'Error de conexión'; alerta.style.display = 'block'; }
+}
+
+// ── OPERATIVO: mis solicitudes ──
+async function cargarMisSolicitudes() {
+  const cont = document.getElementById('arco-mis-solicitudes');
+  if (!cont) return;
+  try {
+    const res  = await fetch('/api/arco/solicitudes_rect');
+    const data = await res.json();
+    if (!data.length) {
+      cont.innerHTML = '<p style="font-size:13px;color:var(--gris-medio);text-align:center;padding:20px 0;">No has enviado solicitudes de rectificación</p>';
+      return;
+    }
+    cont.innerHTML = `<div class="tabla-wrap"><table class="tabla">
+      <thead><tr><th>Folio</th><th>Nombre</th><th>Estado</th><th>Motivo de rechazo</th></tr></thead>
+      <tbody>${data.map(s => {
+        const badge = s.estado === 'pendiente'
+          ? '<span class="badge badge-pendiente">Pendiente</span>'
+          : s.estado === 'aprobada'
+          ? '<span class="badge badge-aprobada">Aprobada</span>'
+          : '<span class="badge badge-rechazada">Rechazada</span>';
+        return `<tr>
+          <td style="font-family:var(--mono);font-size:11px;">${s.folio}</td>
+          <td class="nombre-celda">${s.migrante_nombre}</td>
+          <td>${badge}</td>
+          <td style="font-size:12px;color:var(--rojo-texto);">${s.motivo_rechazo||'—'}</td>
+        </tr>`;
+      }).join('')}</tbody></table></div>`;
+  } catch(e) {
+    cont.innerHTML = '<p style="color:var(--rojo-texto);text-align:center;padding:16px;">Error al cargar</p>';
+  }
+}
+
+// ── COORDINADOR: solicitudes de cancelación de operativos ──
+let resolverCancelId = null;
+
+async function cargarSolicitudesCancel() {
+  const cont = document.getElementById('arco-cancelaciones-lista');
+  if (!cont) return;
+  try {
+    const res  = await fetch('/api/arco/solicitudes_cancelacion_op');
+    const data = await res.json();
+    if (!data.length) {
+      cont.innerHTML = '<p style="font-size:13px;color:var(--gris-medio);text-align:center;padding:20px 0;">No hay solicitudes de cancelación pendientes</p>';
+      return;
+    }
+    cont.innerHTML = `<div class="tabla-wrap"><table class="tabla">
+      <thead><tr><th>Folio</th><th>Nombre</th><th>Solicitado por</th><th>Motivo</th><th>Fecha</th><th></th></tr></thead>
+      <tbody>${data.map(s => `<tr>
+        <td style="font-family:var(--mono);font-size:11px;">${s.folio}</td>
+        <td class="nombre-celda">${s.migrante_nombre}</td>
+        <td style="font-size:12px;">${s.solicitado_por}</td>
+        <td style="font-size:12px;">${s.motivo || '—'}</td>
+        <td style="font-size:12px;">${(s.fecha_solicitud||'').slice(0,10)}</td>
+        <td style="white-space:nowrap;">
+          <button class="btn btn-ghost btn-sm" style="color:var(--rojo-texto);border-color:var(--rojo-borde);"
+            onclick="abrirResolverCancel(${s.id},'${s.migrante_nombre.replace(/'/g,"\\'")}','${s.folio}','${(s.motivo||'').replace(/'/g,"\\'")}','${s.solicitado_por}')">Revisar</button>
+        </td>
+      </tr>`).join('')}</tbody></table></div>`;
+  } catch(e) {
+    cont.innerHTML = '<p style="color:var(--rojo-texto);text-align:center;padding:16px;">Error al cargar</p>';
+  }
+}
+
+function abrirResolverCancel(sid, nombre, folio, motivo, solicitadoPor) {
+  resolverCancelId = sid;
+  const cadenaHtml = _renderCadenaFirmas([
+    { paso: 1, accion: 'Solicitud de cancelación (op)', responsable: solicitadoPor, fecha: '', firma: null },
+    { paso: 2, accion: 'Validación y firma coordinador', responsable: '', fecha: '', firma: null, pendiente: true },
+    { paso: 3, accion: 'Aprobación administrador', responsable: '', fecha: '', firma: null, pendiente: true },
+  ]);
+  document.getElementById('resolver-cancel-info').innerHTML = `
+    <p style="font-size:13px;margin-bottom:12px;">
+      <strong>${nombre}</strong> · Folio: ${folio}<br>
+      <span style="color:var(--gris-medio);font-size:12px;">Solicitado por <strong>${solicitadoPor}</strong></span>
+    </p>
+    <p style="font-size:13px;padding:10px 14px;background:var(--gris-fondo);border-radius:var(--radio-md);margin-bottom:12px;">
+      <strong>Motivo:</strong> ${motivo || 'Sin motivo'}
+    </p>
+    <p style="font-size:12px;color:var(--amarillo-texto);padding:8px 12px;background:var(--amarillo-bg);border-radius:var(--radio-md);margin-bottom:8px;">
+      Al aprobar, la solicitud se firmará con tu clave EC y se escalará al administrador para la eliminación definitiva.
+    </p>
+    ${cadenaHtml}`;
+  document.getElementById('alerta-resolver-cancel').style.display = 'none';
+  document.getElementById('overlay-arco-resolver-cancel').classList.add('abierto');
+}
+
+function cerrarResolverCancel() {
+  document.getElementById('overlay-arco-resolver-cancel').classList.remove('abierto');
+  resolverCancelId = null;
+}
+
+async function resolverCancelacion(accion) {
+  const alerta = document.getElementById('alerta-resolver-cancel');
+  alerta.style.display = 'none';
+  const fd = new FormData();
+  fd.append('accion', accion);
+  try {
+    const res  = await fetch('/api/arco/solicitudes_cancelacion_op/' + resolverCancelId + '/resolver', { method: 'POST', body: fd });
+    const data = await res.json();
+    if (!res.ok || data.error) { alerta.textContent = data.error || 'Error'; alerta.style.display = 'block'; return; }
+    cerrarResolverCancel();
+    cargarSolicitudesCancel();
+    alert(accion === 'aprobar'
+      ? 'Solicitud firmada y escalada al administrador correctamente.'
+      : 'Solicitud rechazada.');
+  } catch(e) { alerta.textContent = 'Error de conexión'; alerta.style.display = 'block'; }
+}
+
+// ── OPERATIVO: mis solicitudes de cancelación ──
+async function cargarMisSolicitudesCancel() {
+  const cont = document.getElementById('arco-mis-cancelaciones');
+  if (!cont) return;
+  try {
+    const res  = await fetch('/api/arco/mis_solicitudes_cancelacion');
+    const data = await res.json();
+    if (!data.length) {
+      cont.innerHTML = '<p style="font-size:13px;color:var(--gris-medio);text-align:center;padding:20px 0;">No has enviado solicitudes de cancelación</p>';
+      return;
+    }
+    cont.innerHTML = `<div class="tabla-wrap"><table class="tabla">
+      <thead><tr><th>Folio</th><th>Nombre</th><th>Estado</th><th>Fecha</th></tr></thead>
+      <tbody>${data.map(s => {
+        const badge = s.estado === 'pendiente'
+          ? '<span class="badge badge-pendiente">Pendiente</span>'
+          : s.estado === 'aprobada'
+          ? '<span class="badge badge-aprobada">Escalada al admin</span>'
+          : '<span class="badge badge-rechazada">Rechazada</span>';
+        return `<tr>
+          <td style="font-family:var(--mono);font-size:11px;">${s.folio}</td>
+          <td class="nombre-celda">${s.migrante_nombre}</td>
+          <td>${badge}</td>
+          <td style="font-size:12px;">${(s.fecha_solicitud||'').slice(0,10)}</td>
+        </tr>`;
+      }).join('')}</tbody></table></div>`;
+  } catch(e) {
+    cont.innerHTML = '<p style="color:var(--rojo-texto);text-align:center;padding:16px;">Error al cargar</p>';
+  }
+}
+
+// Cerrar overlays ARCO al hacer click fuera
+['overlay-arco-acceso','overlay-arco-rect','overlay-arco-cancel','overlay-arco-resolver',
+ 'overlay-arco-resolver-cancel','overlay-historial-op','overlay-detalle-aprobacion'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener('click', function(e) { if (e.target === this) this.classList.remove('abierto'); });
+});
+
+// ── PERFIL PROPIO ─────────────────────────────────────────────
+async function cargarMiPerfil() {
+  const cont = document.getElementById('mi-info-contenido');
+  if (!cont) return;
+  try {
+    const res = await fetch('/panel/api/mi_perfil');
+    if (!res.ok) { cont.innerHTML = '<p style="font-size:13px;color:var(--rojo-texto);text-align:center;padding:12px 0;">Error al cargar datos</p>'; return; }
+    const u = await res.json();
+    const rolLabels = { admin: 'Administrador', coord: 'Coordinador', op: 'Operativo', voluntario: 'Voluntario' };
+    const fila = (label, valor) => `
+      <div style="display:flex;gap:12px;padding:7px 0;border-bottom:1px solid var(--gris-linea);">
+        <div style="font-size:12px;font-weight:600;color:var(--gris-medio);min-width:150px;">${label}</div>
+        <div style="font-size:13px;color:var(--negro);">${valor || '<span style="color:var(--gris-medio);font-style:italic;">Sin datos</span>'}</div>
+      </div>`;
+    cont.innerHTML = `
+      <div style="display:flex;flex-direction:column;">
+        ${fila('Correo', u.usuario)}
+        ${fila('Nombre', u.nombre)}
+        ${fila('Rol', rolLabels[u.rol] || u.rol)}
+        ${fila('Teléfono', u.telefono)}
+        ${fila('CURP', u.curp)}
+        ${fila('Fecha de nacimiento', u.fecha_nacimiento)}
+        ${fila('Género', u.genero)}
+        ${fila('Área', u.area)}
+      </div>`;
+  } catch(e) {
+    if (cont) cont.innerHTML = '<p style="font-size:13px;color:var(--rojo-texto);text-align:center;padding:12px 0;">Error al cargar datos</p>';
+  }
+}
+
+// ── INIT ───────────────────────────────────────────────────────
+async function init() {
+  cargarMiPerfil();
+  try {
+    const res = await fetch('/api/migrantes');
+    const lista = await res.json();
+    document.getElementById('cnt-migrantes').textContent = Array.isArray(lista) ? lista.length : 0;
+  } catch(e) {
+    document.getElementById('cnt-migrantes').textContent = '—';
+  }
+  if (ROL === 'op') {
+    cargarPendientesCount();
+    cargarUltimasValidaciones();
+  }
+  if (ROL === 'coord') {
+    cargarPendientesCount();
+    verificarCertificadoCoord();
+  }
+}
+
+async function verificarCertificadoCoord() {
+  try {
+    const res = await fetch('/panel/api/mi_certificado');
+    if (!res.ok) return;
+    const cert = await res.json();
+    if (!cert.fecha_expiracion) return;
+    const exp = new Date(cert.fecha_expiracion.replace(' ', 'T'));
+    const hoy = new Date(); hoy.setHours(0,0,0,0);
+    const dias = Math.ceil((exp - hoy) / 86400000);
+    const alertEl = document.getElementById('alerta-cert-vencimiento');
+    const textEl  = document.getElementById('alerta-cert-dias-texto');
+    if (alertEl && dias <= 7) {
+      textEl.textContent = dias <= 0
+        ? ' tu certificado ya venció'
+        : ` vence en ${dias} día${dias === 1 ? '' : 's'}`;
+      alertEl.style.display = 'block';
+    }
+  } catch(e) {}
+}
+
+// ── DASHBOARD OP / COORD ─────────────────────────────────────
+async function cargarPendientesCount() {
+  const el = document.getElementById('cnt-pendientes-op');
+  if (!el) return;
+  const url = ROL === 'op'
+    ? '/api/registro_migrante/pendientes_op'
+    : '/api/registro_migrante/pendientes_coord';
+  try {
+    const res = await fetch(url);
+    if (!res.ok) { el.textContent = '—'; return; }
+    const data = await res.json();
+    el.textContent = Array.isArray(data) ? data.length : '—';
+  } catch(e) {
+    el.textContent = '—';
+  }
+}
+
+async function cargarUltimasValidaciones() {
+  const cont = document.getElementById('op-ultimas-validaciones');
+  if (!cont) return;
+  try {
+    const res = await fetch('/api/registro_migrante/historial_op?limite=10');
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      cont.innerHTML = `<p style="color:var(--rojo-texto);text-align:center;padding:16px;">${err.error || 'Error al cargar validaciones'}</p>`;
+      return;
+    }
+    const data = await res.json();
+    if (!data.length) {
+      cont.innerHTML = '<p style="font-size:13px;color:var(--gris-medio);text-align:center;padding:20px 0;">Sin validaciones registradas</p>';
+      return;
+    }
+    const badgeColor = { pendiente_coord: 'var(--amarillo-texto)', aprobada: 'var(--verde-texto)', rechazada: 'var(--rojo-texto)' };
+    const badgeBg    = { pendiente_coord: 'var(--amarillo-bg)',    aprobada: 'var(--verde-bg)',    rechazada: 'var(--rojo-bg)' };
+    const estadoLabel = { pendiente_coord: 'Pendiente coord', aprobada: 'Aprobado', rechazada: 'Rechazado' };
+    cont.innerHTML = `<div class="tabla-wrap"><table class="tabla"><thead><tr>
+      <th>Nombre</th><th>País</th><th>F. Atención</th><th>Estado</th><th>Validado</th>
+    </tr></thead><tbody>${data.map(r => {
+      const col = badgeColor[r.estado] || 'var(--gris-medio)';
+      const bg  = badgeBg[r.estado]   || 'var(--gris-claro)';
+      const lbl = estadoLabel[r.estado] || r.estado;
+      return `<tr>
+        <td class="nombre-celda">${r.nombre || '—'}</td>
+        <td>${r.pais_origen || '—'}</td>
+        <td style="font-size:12px;">${(r.fecha_atencion || '—').slice(0,10)}</td>
+        <td><span style="background:${bg};color:${col};padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;">${lbl}</span></td>
+        <td style="font-size:12px;">${(r.op_validado_en || '—').slice(0,16)}</td>
+      </tr>`;
+    }).join('')}</tbody></table></div>`;
+  } catch(e) {
+    cont.innerHTML = '<p style="color:var(--rojo-texto);text-align:center;padding:16px;">Error al cargar validaciones</p>';
+  }
+}
+
+async function abrirHistorialOp() {
+  const cont = document.getElementById('historial-op-contenido');
+  if (cont) cont.innerHTML = '<p style="font-size:13px;color:var(--gris-medio);text-align:center;padding:20px 0;">Cargando...</p>';
+  document.getElementById('overlay-historial-op').classList.add('abierto');
+  try {
+    const res = await fetch('/api/registro_migrante/historial_op?limite=0');
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      if (cont) cont.innerHTML = `<p style="color:var(--rojo-texto);text-align:center;padding:16px;">${err.error || 'Error al cargar historial'}</p>`;
+      return;
+    }
+    const data = await res.json();
+    if (!data.length) {
+      if (cont) cont.innerHTML = '<p style="font-size:13px;color:var(--gris-medio);text-align:center;padding:20px 0;">Sin registros en el historial</p>';
+      return;
+    }
+    const badgeColor = { pendiente_coord: 'var(--amarillo-texto)', aprobada: 'var(--verde-texto)', rechazada: 'var(--rojo-texto)' };
+    const badgeBg    = { pendiente_coord: 'var(--amarillo-bg)',    aprobada: 'var(--verde-bg)',    rechazada: 'var(--rojo-bg)' };
+    const estadoLabel = { pendiente_coord: 'Pendiente coord', aprobada: 'Aprobado', rechazada: 'Rechazado' };
+    if (cont) cont.innerHTML = `<div class="tabla-wrap"><table class="tabla"><thead><tr>
+      <th>Nombre</th><th>País</th><th>F. Atención</th><th>Estado</th><th>Validado el</th>
+    </tr></thead><tbody>${data.map(r => {
+      const col = badgeColor[r.estado] || 'var(--gris-medio)';
+      const bg  = badgeBg[r.estado]   || 'var(--gris-claro)';
+      const lbl = estadoLabel[r.estado] || r.estado;
+      return `<tr>
+        <td class="nombre-celda">${r.nombre || '—'}</td>
+        <td>${r.pais_origen || '—'}</td>
+        <td style="font-size:12px;">${(r.fecha_atencion || '—').slice(0,10)}</td>
+        <td><span style="background:${bg};color:${col};padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;">${lbl}</span></td>
+        <td style="font-size:12px;">${(r.op_validado_en || '—').slice(0,16)}</td>
+      </tr>`;
+    }).join('')}</tbody></table></div>`;
+  } catch(e) {
+    if (cont) cont.innerHTML = '<p style="color:var(--rojo-texto);text-align:center;padding:16px;">Error al cargar historial</p>';
+  }
+}
+
+function cerrarHistorialOp() {
+  document.getElementById('overlay-historial-op').classList.remove('abierto');
+}
+
+let _buscarMigranteInicioTimer = null;
+async function buscarMigranteInicio(q) {
+  const cont = document.getElementById('inicio-buscar-resultados');
+  if (!cont) return;
+  if (q.trim().length < 2) {
+    cont.innerHTML = '<p style="font-size:13px;color:var(--gris-medio);text-align:center;padding:20px 0;">Ingresa al menos 2 caracteres para buscar</p>';
+    return;
+  }
+  clearTimeout(_buscarMigranteInicioTimer);
+  _buscarMigranteInicioTimer = setTimeout(async () => {
+    cont.innerHTML = '<p style="font-size:13px;color:var(--gris-medio);text-align:center;padding:20px 0;">Buscando...</p>';
+    try {
+      const res = await fetch('/api/arco/buscar?q=' + encodeURIComponent(q));
+      if (!res.ok) { cont.innerHTML = '<p style="color:var(--rojo-texto);text-align:center;padding:20px 0;">Error al buscar</p>'; return; }
+      const data = await res.json();
+      if (!data.length) {
+        cont.innerHTML = `<p style="font-size:13px;color:var(--gris-medio);text-align:center;padding:20px 0;">Sin resultados para "${q}"</p>`;
+        return;
+      }
+      cont.innerHTML = `<div class="tabla-wrap"><table class="tabla">
+        <thead><tr><th>Folio</th><th>Nombre</th><th>País</th><th>F. Atención</th><th></th></tr></thead>
+        <tbody>${data.map(m => `<tr>
+          <td style="font-family:var(--mono);font-size:11px;">${m.folio}</td>
+          <td class="nombre-celda">${m.nombre}</td>
+          <td>${m.pais_origen || '—'}</td>
+          <td style="font-size:12px;">${m.fecha_atencion || '—'}</td>
+          <td><button class="btn btn-ghost btn-sm" onclick="verAcceso(${m.id})">Ver datos</button></td>
+        </tr>`).join('')}</tbody></table></div>`;
+    } catch(e) {
+      cont.innerHTML = '<p style="color:var(--rojo-texto);text-align:center;padding:20px 0;">Error al buscar</p>';
+    }
+  }, 280);
+}
+
+// ── BULK APROBACIONES (coord) ─────────────────────────────────
+function bulkToggleAll(cb) {
+  document.querySelectorAll('.bulk-check-item').forEach(c => c.checked = cb.checked);
+  bulkUpdateCount();
+}
+
+function bulkUpdateCount() {
+  const sel = document.querySelectorAll('.bulk-check-item:checked').length;
+  const el = document.getElementById('bulk-sel-count');
+  if (el) el.textContent = `${sel} seleccionados`;
+}
+
+async function bulkCoordResolver(accion) {
+  const checks = [...document.querySelectorAll('.bulk-check-item:checked')];
+  if (!checks.length) { toast('Selecciona al menos un ticket'); return; }
+  const ids = checks.map(c => parseInt(c.value));
+  let motivo = '';
+  if (accion === 'rechazar') {
+    motivo = prompt('Motivo del rechazo (aplica a todos los seleccionados):');
+    if (!motivo) return;
+  }
+  if (!confirm(`¿${accion === 'aprobar' ? 'Aprobar' : 'Rechazar'} ${ids.length} ticket(s)?`)) return;
+  try {
+    const res  = await fetch('/api/registro_migrante/bulk_coord_resolver', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids, accion, motivo }),
+    });
+    const data = await res.json();
+    if (!res.ok || data.error) { toast(data.error || 'Error', true); return; }
+    const msg = `Procesados: ${data.procesados}${data.errores?.length ? ` · Errores: ${data.errores.length}` : ''}`;
+    toast(msg);
+    cargarAprobacionesPorRol();
+  } catch(e) {
+    toast('Error de conexión', true);
+  }
+}
+
+// ── APROBACIONES UNIFICADAS (op y coord) ────────────────────
+let ticketOpActualId = null;
+let ticketCoordActualId = null;
+
+async function cargarAprobacionesPorRol() {
+  const pendientesDiv = document.getElementById('aprobaciones-pendientes-lista');
+  const historialDiv  = document.getElementById('aprobaciones-historial');
+  if (pendientesDiv) pendientesDiv.innerHTML = '<p style="font-size:13px;color:var(--gris-medio);text-align:center;padding:20px 0;">Cargando...</p>';
+  if (historialDiv)  historialDiv.innerHTML  = '<p style="font-size:13px;color:var(--gris-medio);text-align:center;padding:20px 0;">Cargando...</p>';
+
+  const urlPendientes = ROL === 'op'
+    ? '/api/registro_migrante/pendientes_op'
+    : '/api/registro_migrante/pendientes_coord';
+
+  try {
+    const [resPend, resHist] = await Promise.all([
+      fetch(urlPendientes),
+      fetch('/api/registro_migrante/historial'),
+    ]);
+
+    const pendientes = resPend.ok ? await resPend.json() : [];
+    const historial  = resHist.ok ? await resHist.json() : [];
+
+    // Badge y métrica
+    const badge = document.getElementById('badge-aprobaciones-text');
+    if (badge) {
+      if (pendientes.length > 0) { badge.textContent = pendientes.length; badge.style.display = ''; }
+      else { badge.style.display = 'none'; }
+    }
+    const cntEl = document.getElementById('cnt-pendientes-op');
+    if (cntEl) cntEl.textContent = pendientes.length;
+
+    // Lista de pendientes
+    if (pendientesDiv) {
+      if (!pendientes.length) {
+        pendientesDiv.innerHTML = '<p style="font-size:13px;color:var(--gris-medio);text-align:center;padding:20px 0;">Sin solicitudes pendientes</p>';
+      } else if (ROL === 'op') {
+        pendientesDiv.innerHTML = `<table class="tabla"><thead><tr>
+          <th>Nombre</th><th>Enviado por</th><th>País</th><th>F. Atención</th><th>Enviado</th><th></th>
+        </tr></thead><tbody>` +
+        pendientes.map(t => `<tr>
+          <td>${t.nombre||'—'}</td>
+          <td><span style="font-family:var(--mono);font-size:12px;">${t.enviado_por}</span></td>
+          <td>${t.pais_origen||'—'}</td>
+          <td>${(t.fecha_atencion||'').slice(0,10)}</td>
+          <td>${(t.creado||'').slice(0,10)}</td>
+          <td><button class="btn btn-sm btn-primary" onclick="abrirRevisarTicketOp(${t.id}, ${JSON.stringify(t).replace(/"/g,'&quot;')})">Revisar</button></td>
+        </tr>`).join('') + '</tbody></table>';
+      } else {
+        const bulkBar = `<div id="bulk-bar-coord" style="display:none;background:var(--gris-fondo);border:1px solid var(--gris-linea);border-radius:var(--radio-md);padding:8px 14px;margin-bottom:10px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+          <span style="font-size:12px;font-weight:600;" id="bulk-sel-count">0 seleccionados</span>
+          <button class="btn btn-ghost btn-sm" style="color:var(--verde-texto);border-color:var(--verde-borde);" onclick="bulkCoordResolver('aprobar')">Aprobar seleccionados</button>
+          <button class="btn btn-ghost btn-sm" style="color:var(--rojo-texto);border-color:var(--rojo-borde);" onclick="bulkCoordResolver('rechazar')">Rechazar seleccionados</button>
+        </div>`;
+        pendientesDiv.innerHTML = bulkBar + `<table class="tabla"><thead><tr>
+          <th><input type="checkbox" id="bulk-check-all" onchange="bulkToggleAll(this)"></th>
+          <th>Nombre</th><th>País</th><th>Enviado por</th><th>Op. validador</th><th>Firma op</th><th>F. Envío</th><th></th>
+        </tr></thead><tbody>` +
+        pendientes.map(t => `<tr>
+          <td><input type="checkbox" class="bulk-check-item" value="${t.id}" onchange="bulkUpdateCount()"></td>
+          <td>${t.nombre||'—'}</td>
+          <td>${t.pais_origen||'—'}</td>
+          <td><span style="font-family:var(--mono);font-size:12px;">${t.enviado_por}</span></td>
+          <td>${t.op_validador||'<em style="color:var(--gris-medio);">—</em>'}</td>
+          <td style="text-align:center;">${t.tiene_firma_op
+            ? '<span style="color:var(--verde-texto);font-weight:600;">&#10003; presente</span>'
+            : '<span style="color:var(--gris-medio);">—</span>'}</td>
+          <td>${(t.creado||'').slice(0,10)}</td>
+          <td><button class="btn btn-sm btn-primary" onclick="abrirConfirmarRegistroCoord(${t.id}, ${JSON.stringify(t).replace(/"/g,'&quot;')})">Revisar</button></td>
+        </tr>`).join('') + '</tbody></table>';
+        document.getElementById('bulk-bar-coord').style.display = 'flex';
+      }
+    }
+
+    // Historial scrolleable
+    if (historialDiv) {
+      if (!historial.length) {
+        historialDiv.innerHTML = '<p style="font-size:13px;color:var(--gris-medio);text-align:center;padding:20px 0;">Sin aprobaciones registradas aún</p>';
+      } else {
+        const badgeColor = { pendiente_coord: 'var(--amarillo-texto)', aprobada: 'var(--verde-texto)', rechazada: 'var(--rojo-texto)' };
+        const badgeBg    = { pendiente_coord: 'var(--amarillo-bg)',   aprobada: 'var(--verde-bg)',   rechazada: 'var(--rojo-bg)' };
+        const labelMap   = { pendiente_coord: 'Pendiente coordinador', aprobada: 'Aprobado', rechazada: 'Rechazado' };
+        historialDiv.innerHTML = `<table class="tabla"><thead><tr>
+          <th>Nombre</th><th>País</th><th>F. Atención</th><th>Estado</th><th>Procesado</th><th></th>
+        </tr></thead><tbody>` +
+        historial.map(h => {
+          const col   = badgeColor[h.estado] || 'var(--gris-medio)';
+          const bg    = badgeBg[h.estado]    || 'var(--gris-claro)';
+          const label = labelMap[h.estado]   || h.estado;
+          const fecha = ROL === 'op'
+            ? (h.op_validado_en || h.rechazado_en || '').slice(0,10)
+            : (h.coord_aprobado_en || h.rechazado_en || '').slice(0,10);
+          return `<tr style="cursor:pointer;" onclick="abrirDetalleAprobacion(${h.id})">
+            <td>${h.nombre||'—'}</td>
+            <td>${h.pais_origen||'—'}</td>
+            <td>${(h.fecha_atencion||'').slice(0,10)}</td>
+            <td><span style="background:${bg};color:${col};padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;">${label}</span></td>
+            <td>${fecha||'—'}</td>
+            <td><button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();abrirDetalleAprobacion(${h.id})">Ver detalle</button></td>
+          </tr>`;
+        }).join('') + '</tbody></table>';
+      }
+    }
+  } catch(e) {
+    if (pendientesDiv) pendientesDiv.innerHTML = '<p style="color:var(--rojo-texto);text-align:center;padding:16px;">Error al cargar</p>';
+  }
+  if (ROL === 'coord') cargarMisEliminaciones();
+}
+
+// ── DETALLE DE APROBACIÓN ────────────────────────────────────
+async function abrirDetalleAprobacion(sid) {
+  const overlay = document.getElementById('overlay-detalle-aprobacion');
+  const cont    = document.getElementById('detalle-aprobacion-contenido');
+  if (!overlay || !cont) return;
+  cont.innerHTML = '<p style="font-size:13px;color:var(--gris-medio);text-align:center;padding:20px 0;">Cargando...</p>';
+  overlay.style.display = 'flex';
+  try {
+    const res = await fetch(`/api/registro_migrante/${sid}/detalle`);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      cont.innerHTML = `<p style="color:var(--rojo-texto);text-align:center;padding:16px;">${err.error||'Error al cargar el detalle'}</p>`;
+      return;
+    }
+    const d = await res.json();
+    const rolLegible = { voluntario: 'Voluntario', op: 'Operativo', coord: 'Coordinador' };
+    const estadoBg  = { aprobada: 'var(--verde-bg)',   rechazada: 'var(--rojo-bg)' };
+    const estadoCol = { aprobada: 'var(--verde-texto)', rechazada: 'var(--rojo-texto)' };
+    const estadoLabel = d.estado === 'aprobada' ? 'Aprobado' : 'Rechazado';
+
+    let rechazoHtml = '';
+    if (d.estado === 'rechazada') {
+      rechazoHtml = `
+        <div style="background:var(--rojo-bg);border:1px solid var(--rojo-borde,#f5c6cb);border-radius:6px;padding:10px 14px;margin-bottom:12px;font-size:13px;">
+          <strong style="color:var(--rojo-texto);">Rechazado por:</strong>
+          <span style="font-family:var(--mono);">${d.rechazado_por||'—'}</span>
+          &nbsp;·&nbsp; ${(d.rechazado_en||'').slice(0,16)}<br>
+          <strong style="color:var(--rojo-texto);">Motivo:</strong> ${d.motivo_rechazo||'—'}
+        </div>`;
+    }
+
+    const firmaOpHtml = d.op_validador
+      ? `<tr>
+          <td style="padding:8px 12px;border-bottom:1px solid var(--gris-linea);white-space:nowrap;">
+            <span style="display:inline-block;background:var(--amarillo-bg);color:var(--amarillo-texto);font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;">Paso 2</span>
+          </td>
+          <td style="padding:8px 12px;border-bottom:1px solid var(--gris-linea);">Validación OP</td>
+          <td style="padding:8px 12px;border-bottom:1px solid var(--gris-linea);font-family:var(--mono);font-size:12px;">${d.op_validador}</td>
+          <td style="padding:8px 12px;border-bottom:1px solid var(--gris-linea);">${(d.op_validado_en||'').slice(0,16)}</td>
+        </tr>`
+      : '';
+
+    const firmaCoordHtml = d.coord_aprobador
+      ? `<tr>
+          <td style="padding:8px 12px;white-space:nowrap;">
+            <span style="display:inline-block;background:var(--verde-bg);color:var(--verde-texto);font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;">Paso 3</span>
+          </td>
+          <td style="padding:8px 12px;">Aprobación Coord</td>
+          <td style="padding:8px 12px;font-family:var(--mono);font-size:12px;">${d.coord_aprobador}</td>
+          <td style="padding:8px 12px;">${(d.coord_aprobado_en||'').slice(0,16)}</td>
+        </tr>`
+      : '';
+
+    cont.innerHTML = `
+      ${rechazoHtml}
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+        <span style="font-size:15px;font-weight:700;">${d.nombre||'—'}</span>
+        <span style="background:${estadoBg[d.estado]||'var(--gris-claro)'};color:${estadoCol[d.estado]||'var(--gris-medio)'};font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;">${estadoLabel}</span>
+      </div>
+
+      <p style="font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--gris-medio);margin:0 0 8px;">Datos del migrante</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 20px;font-size:13px;margin-bottom:16px;">
+        <div><span style="color:var(--gris-medio);">País de origen</span><br>${d.pais_origen||'—'}</div>
+        <div><span style="color:var(--gris-medio);">Fecha de nacimiento</span><br>${(d.fecha_nacimiento||'').slice(0,10)||'—'}</div>
+        <div><span style="color:var(--gris-medio);">Género</span><br>${d.genero||'—'}</div>
+        <div><span style="color:var(--gris-medio);">Estado civil</span><br>${d.estado_civil||'—'}</div>
+        <div><span style="color:var(--gris-medio);">Departamento / Estado</span><br>${d.departamento_estado||'—'}</div>
+        <div><span style="color:var(--gris-medio);">Grupo de población</span><br>${d.grupo_poblacion||'—'}</div>
+        <div><span style="color:var(--gris-medio);">Teléfono de contacto</span><br>${d.telefono_contacto||'—'}</div>
+        <div><span style="color:var(--gris-medio);">Fecha de atención</span><br>${(d.fecha_atencion||'').slice(0,10)||'—'}</div>
+      </div>
+
+      <p style="font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--gris-medio);margin:0 0 8px;">Cadena de firmas</p>
+      <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;font-size:13px;background:var(--gris-claro);border-radius:8px;overflow:hidden;">
+          <thead>
+            <tr style="font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--gris-medio);">
+              <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--gris-linea);">Paso</th>
+              <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--gris-linea);">Acción</th>
+              <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--gris-linea);">Responsable</th>
+              <th style="padding:8px 12px;text-align:left;border-bottom:1px solid var(--gris-linea);">Fecha</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="padding:8px 12px;border-bottom:1px solid var(--gris-linea);white-space:nowrap;">
+                <span style="display:inline-block;background:#e8eaf6;color:#3949ab;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;">Paso 1</span>
+              </td>
+              <td style="padding:8px 12px;border-bottom:1px solid var(--gris-linea);">Creación</td>
+              <td style="padding:8px 12px;border-bottom:1px solid var(--gris-linea);font-family:var(--mono);font-size:12px;">${d.enviado_por} <em style="color:var(--gris-medio);">(${rolLegible[d.rol_enviado_por]||d.rol_enviado_por})</em></td>
+              <td style="padding:8px 12px;border-bottom:1px solid var(--gris-linea);">${(d.creado||'').slice(0,16)}</td>
+            </tr>
+            ${firmaOpHtml}
+            ${firmaCoordHtml}
+          </tbody>
+        </table>
+      </div>`;
+  } catch(e) {
+    cont.innerHTML = '<p style="color:var(--rojo-texto);text-align:center;padding:16px;">Error al cargar el detalle</p>';
+  }
+}
+
+function cerrarDetalleAprobacion() {
+  const overlay = document.getElementById('overlay-detalle-aprobacion');
+  if (overlay) overlay.style.display = 'none';
+}
+
+// ── REVISAR TICKET OP ────────────────────────────────────────
+function abrirRevisarTicketOp(sid, datos) {
+  ticketOpActualId = sid;
+  const info = document.getElementById('ticket-op-info');
+  const rolLegible = { voluntario: 'Voluntario', op: 'Operativo' };
+  const campo = (label, valor) =>
+    `<div><span style="font-size:11px;font-weight:600;color:var(--gris-medio);text-transform:uppercase;letter-spacing:.05em;">${label}</span><br><span style="font-size:13px;">${valor || '<em style="color:var(--gris-medio);">—</em>'}</span></div>`;
+  const edad = (() => {
+    if (!datos.fecha_nacimiento) return '—';
+    const nac = new Date(datos.fecha_nacimiento + 'T00:00:00');
+    const hoy = new Date();
+    let e = hoy.getFullYear() - nac.getFullYear();
+    if (hoy.getMonth() < nac.getMonth() || (hoy.getMonth() === nac.getMonth() && hoy.getDate() < nac.getDate())) e--;
+    return e >= 0 ? e + ' años' : '—';
+  })();
+  if (info) info.innerHTML = `
+    <p style="font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--gris-medio);margin:0 0 10px;">Datos del formulario</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px 20px;margin-bottom:14px;">
+      ${campo('Nombre completo',       datos.nombre)}
+      ${campo('País de origen',        datos.pais_origen)}
+      ${campo('Fecha de nacimiento',   datos.fecha_nacimiento)}
+      ${campo('Edad',                  edad)}
+      ${campo('Fecha de atención',     datos.fecha_atencion)}
+      ${campo('Género',                datos.genero)}
+      ${campo('Estado civil',          datos.estado_civil)}
+      ${campo('Departamento / Estado', datos.departamento_estado)}
+      ${campo('Grupo de población',    datos.grupo_poblacion)}
+      ${campo('Teléfono de contacto',  datos.telefono_contacto)}
+    </div>
+    ${_renderCadenaFirmas([
+      {
+        paso: 1,
+        accion: 'Registro enviado por ' + (rolLegible[datos.rol_enviado_por] || 'Voluntario'),
+        responsable: datos.enviado_por,
+        fecha: (datos.creado||'').slice(0,16),
+        firma: null,
+      },
+      {
+        paso: 2,
+        accion: 'Validación operativo',
+        responsable: '',
+        fecha: '',
+        firma: null,
+        pendiente: true,
+      },
+    ])}`;
+  const alerta = document.getElementById('alerta-ticket-op');
+  if (alerta) { alerta.style.display = 'none'; alerta.textContent = ''; }
+  const rechazoDiv = document.getElementById('ticket-op-rechazo');
+  if (rechazoDiv) rechazoDiv.style.display = 'none';
+  const btnRec = document.getElementById('btn-ticket-op-rechazar');
+  const btnConf = document.getElementById('btn-ticket-op-confirmar-rechazo');
+  if (btnRec)  btnRec.style.display = '';
+  if (btnConf) btnConf.style.display = 'none';
+  document.getElementById('overlay-revisar-ticket-op').style.display = 'flex';
+}
+
+function cerrarRevisarTicketOp() {
+  document.getElementById('overlay-revisar-ticket-op').style.display = 'none';
+  ticketOpActualId = null;
+}
+
+function toggleTicketOpRechazo() {
+  const div = document.getElementById('ticket-op-rechazo');
+  const btnRec  = document.getElementById('btn-ticket-op-rechazar');
+  const btnConf = document.getElementById('btn-ticket-op-confirmar-rechazo');
+  const btnVal  = document.getElementById('btn-ticket-op-validar');
+  div.style.display = 'block';
+  btnRec.style.display  = 'none';
+  btnConf.style.display = '';
+  if (btnVal) btnVal.style.display = 'none';
+}
+
+async function resolverTicketOp(accion) {
+  if (!ticketOpActualId) return;
+  const alerta = document.getElementById('alerta-ticket-op');
+  const fd = new FormData();
+  fd.append('accion', accion);
+  if (accion === 'rechazar') {
+    const motivo = document.getElementById('ticket-op-motivo').value.trim();
+    if (!motivo) { alerta.textContent = 'El motivo es obligatorio.'; alerta.style.display = 'block'; return; }
+    fd.append('motivo', motivo);
+  }
+  const btn = accion === 'validar'
+    ? document.getElementById('btn-ticket-op-validar')
+    : document.getElementById('btn-ticket-op-confirmar-rechazo');
+  if (btn) { btn.disabled = true; btn.textContent = accion === 'validar' ? 'Firmando…' : 'Rechazando…'; }
+  try {
+    const res = await fetch(`/api/registro_migrante/${ticketOpActualId}/op_validar`, { method: 'POST', body: fd });
+    const data = await res.json();
+    if (!res.ok || data.error) {
+      alerta.textContent = data.error || 'Error al procesar la solicitud.';
+      alerta.style.display = 'block';
+      if (btn) { btn.disabled = false; btn.textContent = accion === 'validar' ? 'Validar y firmar' : 'Confirmar rechazo'; }
+      return;
+    }
+    cerrarRevisarTicketOp();
+    cargarAprobacionesPorRol();
+  } catch(e) {
+    alerta.textContent = 'No se pudo conectar con el servidor.';
+    alerta.style.display = 'block';
+    if (btn) { btn.disabled = false; btn.textContent = accion === 'validar' ? 'Validar y firmar' : 'Confirmar rechazo'; }
+  }
+}
+
+// ── CONFIRMAR REGISTRO COORD ─────────────────────────────────
+function abrirConfirmarRegistroCoord(sid, datos) {
+  ticketCoordActualId = sid;
+  const info = document.getElementById('registro-coord-info');
+  const rolLegible = { voluntario: 'Voluntario', op: 'Operativo' };
+  const campo = (label, valor) =>
+    `<div><span style="font-size:11px;font-weight:600;color:var(--gris-medio);text-transform:uppercase;letter-spacing:.05em;">${label}</span><br><span style="font-size:13px;">${valor || '<em style="color:var(--gris-medio);">—</em>'}</span></div>`;
+  const edad = (() => {
+    if (!datos.fecha_nacimiento) return '—';
+    const nac = new Date(datos.fecha_nacimiento + 'T00:00:00');
+    const hoy = new Date();
+    let e = hoy.getFullYear() - nac.getFullYear();
+    if (hoy.getMonth() < nac.getMonth() || (hoy.getMonth() === nac.getMonth() && hoy.getDate() < nac.getDate())) e--;
+    return e >= 0 ? e + ' años' : '—';
+  })();
+  if (info) info.innerHTML = `
+    <p style="font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--gris-medio);margin:0 0 10px;">Datos del formulario</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px 20px;margin-bottom:14px;">
+      ${campo('Nombre completo',       datos.nombre)}
+      ${campo('País de origen',        datos.pais_origen)}
+      ${campo('Fecha de nacimiento',   datos.fecha_nacimiento)}
+      ${campo('Edad',                  edad)}
+      ${campo('Fecha de atención',     datos.fecha_atencion)}
+      ${campo('Género',                datos.genero)}
+      ${campo('Estado civil',          datos.estado_civil)}
+      ${campo('Departamento / Estado', datos.departamento_estado)}
+      ${campo('Grupo de población',    datos.grupo_poblacion)}
+      ${campo('Teléfono de contacto',  datos.telefono_contacto)}
+    </div>
+    ${_renderCadenaFirmas([
+      {
+        paso: 1,
+        accion: 'Registro enviado por ' + (rolLegible[datos.rol_enviado_por] || 'Voluntario'),
+        responsable: datos.enviado_por,
+        fecha: (datos.creado||'').slice(0,16),
+        firma: null,
+      },
+      {
+        paso: 2,
+        accion: 'Validación operativo',
+        responsable: datos.op_validador || '',
+        fecha: (datos.op_validado_en||'').slice(0,16),
+        firma: datos.tiene_firma_op ? '✓ Firma ECDSA presente' : null,
+        pendiente: !datos.op_validador,
+      },
+      {
+        paso: 3,
+        accion: 'Aprobación coordinador',
+        responsable: '',
+        fecha: '',
+        firma: null,
+        pendiente: true,
+      },
+    ])}`;
+  const alerta = document.getElementById('alerta-registro-coord');
+  if (alerta) { alerta.style.display = 'none'; alerta.textContent = ''; }
+  const rechazoDiv = document.getElementById('registro-coord-rechazo');
+  if (rechazoDiv) rechazoDiv.style.display = 'none';
+  const btnRec  = document.getElementById('btn-coord-rechazar');
+  const btnConf = document.getElementById('btn-coord-confirmar-rechazo');
+  const btnApr  = document.getElementById('btn-coord-aprobar');
+  if (btnRec)  btnRec.style.display  = '';
+  if (btnConf) btnConf.style.display = 'none';
+  if (btnApr)  btnApr.style.display  = '';
+  document.getElementById('overlay-confirmar-registro-coord').style.display = 'flex';
+}
+
+function cerrarConfirmarRegistroCoord() {
+  document.getElementById('overlay-confirmar-registro-coord').style.display = 'none';
+  ticketCoordActualId = null;
+}
+
+function toggleCoordRechazo() {
+  const div = document.getElementById('registro-coord-rechazo');
+  const btnRec  = document.getElementById('btn-coord-rechazar');
+  const btnConf = document.getElementById('btn-coord-confirmar-rechazo');
+  const btnApr  = document.getElementById('btn-coord-aprobar');
+  div.style.display = 'block';
+  btnRec.style.display  = 'none';
+  btnConf.style.display = '';
+  if (btnApr) btnApr.style.display = 'none';
+}
+
+async function resolverRegistroCoord(accion) {
+  if (!ticketCoordActualId) return;
+  const alerta = document.getElementById('alerta-registro-coord');
+  const fd = new FormData();
+  fd.append('accion', accion);
+  if (accion === 'rechazar') {
+    const motivo = document.getElementById('registro-coord-motivo').value.trim();
+    if (!motivo) { alerta.textContent = 'El motivo es obligatorio.'; alerta.style.display = 'block'; return; }
+    fd.append('motivo', motivo);
+  }
+  const btn = accion === 'aprobar'
+    ? document.getElementById('btn-coord-aprobar')
+    : document.getElementById('btn-coord-confirmar-rechazo');
+  if (btn) { btn.disabled = true; btn.textContent = accion === 'aprobar' ? 'Firmando e insertando…' : 'Rechazando…'; }
+  try {
+    const res = await fetch(`/api/registro_migrante/${ticketCoordActualId}/coord_resolver`, { method: 'POST', body: fd });
+    const data = await res.json();
+    if (!res.ok || data.error) {
+      alerta.textContent = data.error || 'Error al procesar la solicitud.';
+      alerta.style.display = 'block';
+      if (btn) { btn.disabled = false; btn.textContent = accion === 'aprobar' ? 'Confirmar e insertar' : 'Confirmar rechazo'; }
+      return;
+    }
+    cerrarConfirmarRegistroCoord();
+    cargarAprobacionesPorRol();
+    if (accion === 'aprobar' && data.folio) {
+      alert(`Migrante registrado exitosamente.\nFolio asignado: ${data.folio}`);
+    }
+  } catch(e) {
+    alerta.textContent = 'No se pudo conectar con el servidor.';
+    alerta.style.display = 'block';
+    if (btn) { btn.disabled = false; btn.textContent = accion === 'aprobar' ? 'Confirmar e insertar' : 'Confirmar rechazo'; }
+  }
+}
+
+init();
+</script>
+
+<!-- ── MODAL: VER EXPEDIENTE MIGRANTE ── -->
+<div class="overlay" id="overlay-ver-mig">
+  <div class="modal" style="max-width:600px;">
+    <div class="modal-header">
+      <span class="modal-titulo">Expediente del migrante</span>
+      <button class="modal-cerrar" onclick="cerrarVerMigrante()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="ver-mig-contenido" style="display:grid;grid-template-columns:1fr 1fr;gap:10px 20px;margin-bottom:20px;"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;">
+        <button class="btn btn-ghost" onclick="cerrarVerMigrante()">Cerrar</button>
+        <button class="btn btn-primary" onclick="descargarMigrante()">
+          <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.8" style="margin-right:5px;"><path d="M7 1v8M4 6l3 3 3-3M1 10v1a2 2 0 002 2h8a2 2 0 002-2v-1"/></svg>
+          Descargar este registro
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let _verMigId = null;
+
+async function verMigrante(id) {
+  _verMigId = id;
+  const overlay = document.getElementById('overlay-ver-mig');
+  const cont = document.getElementById('ver-mig-contenido');
+  cont.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:var(--gris-medio);padding:16px;">Cargando…</p>';
+  overlay.classList.add('abierto');
+  try {
+    const res = await fetch(`/api/migrante/${id}`);
+    const m = await res.json();
+    if (!res.ok || m.error) {
+      cont.innerHTML = `<p style="grid-column:1/-1;color:var(--rojo-texto);text-align:center;">${m.error || 'Error al cargar datos'}</p>`;
+      return;
+    }
+    const hoy = new Date();
+    let edad = '—';
+    if (m.fecha_nacimiento) {
+      const nac = new Date(m.fecha_nacimiento + 'T00:00:00');
+      let e = hoy.getFullYear() - nac.getFullYear();
+      if (hoy.getMonth() < nac.getMonth() || (hoy.getMonth() === nac.getMonth() && hoy.getDate() < nac.getDate())) e--;
+      edad = e;
+    }
+    const campos = [
+      ['Folio',                m.folio             || '—'],
+      ['Nombre completo',      m.nombre            || '—'],
+      ['Fecha de nacimiento',  m.fecha_nacimiento  || '—'],
+      ['Edad',                 edad],
+      ['País de origen',       m.pais_origen       || '—'],
+      ['Grupo de población',   m.grupo_poblacion   || '—'],
+      ['Fecha de atención',    m.fecha_atencion    || '—'],
+      ['Género',               m.genero            || '—'],
+      ['Departamento/Estado',  m.departamento_estado || '—'],
+      ['Estado civil',         m.estado_civil      || '—'],
+      ['Teléfono',             m.telefono_contacto || '—'],
+      ['Registrado por',       m.registrado_por    || '—'],
+      ['Firmado (operativo)',  m.firmante_op       || '—'],
+      ['Firmado (coord/admin)',m.firmante_coord     || '—'],
+      ['Fecha de creación',    m.creado            || '—'],
+    ];
+    cont.innerHTML = campos.map(([lbl, val]) => `
+      <div>
+        <div style="font-size:10px;font-weight:600;color:var(--gris-medio);text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px;">${lbl}</div>
+        <div style="font-size:13px;color:var(--negro);">${val}</div>
+      </div>`).join('');
+  } catch(e) {
+    cont.innerHTML = '<p style="grid-column:1/-1;color:var(--rojo-texto);text-align:center;">Error de conexión</p>';
+  }
+}
+
+function cerrarVerMigrante() {
+  document.getElementById('overlay-ver-mig').classList.remove('abierto');
+  _verMigId = null;
+}
+
+function descargarMigrante() {
+  if (_verMigId) window.location.href = `/admin/descargar/migrante/${_verMigId}`;
+}
+
+document.getElementById('overlay-ver-mig').addEventListener('click', function(e) {
+  if (e.target === this) cerrarVerMigrante();
+});
+</script>
+</body>
+</html>
