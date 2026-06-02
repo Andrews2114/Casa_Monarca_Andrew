@@ -4189,34 +4189,40 @@ inicializar_cert_servidor()
 inicializar_db()
 
 if __name__ == '__main__':
-    import ssl
-
-    print('\n── Casa Monarca Demo ─────────────────────────────')
-    if MTLS_ENABLED:
-        print('   URL:      https://localhost:5001')
-        print('   Modo:     TLS ACTIVO — solo cert de servidor (sin cliente)')
-    else:
-        print('   URL:      http://localhost:5001')
-        print('   Modo:     DEBUG — TLS desactivado')
     print('   Usuario:  admin    Contraseña: admin123')
     print('   Usuario:  coord    Contraseña: coord123')
     print('─────────────────────────────────────────────────\n')
+    port = int(os.environ.get('PORT', 5001))
+    app.run(debug=False, port=port, host='0.0.0.0')
+# if __name__ == '__main__':
+#     import ssl
 
-    if MTLS_ENABLED:
-        ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-        ctx.load_cert_chain(SERVER_CERT_PATH, SERVER_KEY_PATH)
-        ctx.load_verify_locations(CA_CERT_PATH)
+#     print('\n── Casa Monarca Demo ─────────────────────────────')
+#     if MTLS_ENABLED:
+#         print('   URL:      https://localhost:5001')
+#         print('   Modo:     TLS ACTIVO — solo cert de servidor (sin cliente)')
+#     else:
+#         print('   URL:      http://localhost:5001')
+#         print('   Modo:     DEBUG — TLS desactivado')
+#     print('   Usuario:  admin    Contraseña: admin123')
+#     print('   Usuario:  coord    Contraseña: coord123')
+#     print('─────────────────────────────────────────────────\n')
 
-        # 🔴 Cambio: ya no exigimos certificado de cliente
-        ctx.verify_mode = ssl.CERT_NONE
+#     if MTLS_ENABLED:
+#         ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+#         ctx.load_cert_chain(SERVER_CERT_PATH, SERVER_KEY_PATH)
+#         ctx.load_verify_locations(CA_CERT_PATH)
 
-        app.run(
-            debug=False,
-            port=5001,
-            ssl_context=ctx,
-            host='127.0.0.1',
-            threaded=True
-        )
-    else:
-        app.run(debug=True, port=5001)
+#         # 🔴 Cambio: ya no exigimos certificado de cliente
+#         ctx.verify_mode = ssl.CERT_NONE
+
+#         app.run(
+#             debug=False,
+#             port=5001,
+#             ssl_context=ctx,
+#             host='127.0.0.1',
+#             threaded=True
+#         )
+#     else:
+#         app.run(debug=True, port=5001)
         
