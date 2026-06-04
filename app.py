@@ -30,6 +30,13 @@ from flask import (
 )
 from flask_session import Session
 
+import zoneinfo
+_MTY = zoneinfo.ZoneInfo('America/Monterrey')
+
+def now_mty():
+    """Devuelve datetime actual en zona horaria de Monterrey."""
+    return datetime.now(_MTY)
+
 # ── CONFIGURACIÓN ─────────────────────────────────────────────
 app = Flask(__name__)
 app.secret_key = 'demo-secret-key-cambiar-en-produccion'
@@ -851,7 +858,7 @@ def log_evento(resultado, usuario=None, rol=None, serial=None, detalle=None):
 def refrescar_expirados():
     """Marca como 'expirado' todo cert cuya fecha ya pasó."""
     db = obtener_db()
-    ahora = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    ahora = now_mty().strftime('%Y-%m-%d %H:%M:%S')
     _exec(db,
         "UPDATE certificados SET estado='expirado'"
         " WHERE estado='vigente' AND fecha_expiracion IS NOT NULL"
@@ -1244,7 +1251,7 @@ def api_certificados():
     ).fetchall()
 
     certificados_ui = []
-    ahora = datetime.now()
+    ahora = now_mty()
     for c in rows:
         dias = None
         fe = c['fecha_expiracion']
@@ -1787,8 +1794,8 @@ def admin_editar_usuario():
 
         _revocar_serial_anterior(serial_anterior)
 
-        fecha     = datetime.now().strftime('%Y-%m-%d')
-        fecha_exp = (datetime.now() + timedelta(days=30)).strftime('%Y-%m-%d %H:%M:%S')
+        fecha     = now_mty().strftime('%Y-%m-%d')
+        fecha_exp = (now_mty() + timedelta(days=30)).strftime('%Y-%m-%d %H:%M:%S')
         _exec(db,
             'INSERT INTO certificados'
             ' (serial, usuario, nombre, rol, fecha_emision, fecha_expiracion, estado, emitido_por)'
@@ -2003,8 +2010,8 @@ def nuevo_voluntario():
 ⚠️ La contraseña es personal y solo se muestra aquí.
 """
 
-    fecha = datetime.now().strftime('%Y-%m-%d')
-    fecha_exp = (datetime.now() + timedelta(days=30)).strftime('%Y-%m-%d %H:%M:%S')
+    fecha = now_mty().strftime('%Y-%m-%d')
+    fecha_exp = (now_mty() + timedelta(days=30)).strftime('%Y-%m-%d %H:%M:%S')
 
     _exec(db,
         'INSERT INTO certificados'
@@ -2225,8 +2232,8 @@ def renovar_certificado(cert_id):
         (cert['serial'], email, rol, g.usuario, 'Renovación de certificado')
     )
 
-    fecha     = datetime.now().strftime('%Y-%m-%d')
-    fecha_exp = (datetime.now() + timedelta(days=30)).strftime('%Y-%m-%d %H:%M:%S')
+    fecha     = now_mty().strftime('%Y-%m-%d')
+    fecha_exp = (now_mty() + timedelta(days=30)).strftime('%Y-%m-%d %H:%M:%S')
     _exec(db,
         'INSERT INTO certificados'
         ' (serial, usuario, nombre, rol, fecha_emision, fecha_expiracion, estado, emitido_por)'
@@ -2468,7 +2475,7 @@ def api_migrantes_crear():
 
     # ── Operativo: se auto-firma y crea ticket pendiente de coord ──
     if g.rol == 'op':
-        ahora = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        ahora = now_mty().strftime('%Y-%m-%d %H:%M:%S')
         try:
             cur_tmp = _exec(db,
                 'INSERT INTO solicitudes_registro_migrante'
@@ -2504,7 +2511,7 @@ def api_migrantes_crear():
         return jsonify(ok=True, pendiente=True, ticket_id=ticket_id)
 
     # ── Coord / Admin: inserción directa con firma propia ──
-    ahora = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    ahora = now_mty().strftime('%Y-%m-%d %H:%M:%S')
     try:
         cur = _exec(db,
             'INSERT INTO migrantes'
@@ -2522,7 +2529,7 @@ def api_migrantes_crear():
         return jsonify(error=f'Error al guardar en base de datos: {e}'), 500
 
     nuevo_id = cur.lastrowid
-    folio = f'MIG-{datetime.now().strftime("%Y%m")}-{nuevo_id:04d}'
+    folio = f'MIG-{now_mty().strftime("%Y%m")}-{nuevo_id:04d}'
     _exec(db, 'UPDATE migrantes SET folio=%s WHERE id=%s', (folio, nuevo_id))
 
     priv_pem, pub_pem = _obtener_o_crear_claves_ec(db, g.usuario)
@@ -2851,7 +2858,7 @@ def api_registro_op_validar(sid):
         return jsonify(error='Solicitud no encontrada o ya procesada'), 404
 
     accion = request.form.get('accion', '').strip()
-    ahora = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    ahora = now_mty().strftime('%Y-%m-%d %H:%M:%S')
 
     if accion == 'rechazar':
         motivo = request.form.get('motivo', '').strip()
@@ -2912,7 +2919,7 @@ def api_registro_coord_resolver(sid):
         return jsonify(error='Solicitud no encontrada o ya procesada'), 404
 
     accion = request.form.get('accion', '').strip()
-    ahora = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    ahora = now_mty().strftime('%Y-%m-%d %H:%M:%S')
 
     if accion == 'rechazar':
         motivo = request.form.get('motivo', '').strip()
@@ -2964,7 +2971,7 @@ def api_registro_coord_resolver(sid):
             return jsonify(error=f'Error al insertar migrante: {e}'), 500
 
         nuevo_id = cur2.lastrowid
-        folio = f'MIG-{datetime.now().strftime("%Y%m")}-{nuevo_id:04d}'
+        folio = f'MIG-{now_mty().strftime("%Y%m")}-{nuevo_id:04d}'
         _exec(db, 'UPDATE migrantes SET folio=%s WHERE id=%s', (folio, nuevo_id))
 
         firmas = {}
@@ -3022,7 +3029,7 @@ def api_registro_admin_resolver(sid):
 
     data = request.get_json(silent=True) or {}
     accion = (data.get('accion') or request.form.get('accion', '')).strip()
-    ahora = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    ahora = now_mty().strftime('%Y-%m-%d %H:%M:%S')
 
     if accion == 'rechazar':
         motivo = (data.get('motivo') or request.form.get('motivo', '')).strip()
@@ -3073,7 +3080,7 @@ def api_registro_admin_resolver(sid):
             return jsonify(error=f'Error al insertar migrante: {e}'), 500
 
         nuevo_id = cur2.lastrowid
-        folio = f'MIG-{datetime.now().strftime("%Y%m")}-{nuevo_id:04d}'
+        folio = f'MIG-{now_mty().strftime("%Y%m")}-{nuevo_id:04d}'
         _exec(db, 'UPDATE migrantes SET folio=%s WHERE id=%s', (folio, nuevo_id))
 
         firmas = {}
@@ -3151,7 +3158,7 @@ def api_bulk_coord_resolver():
             if not ticket:
                 errores.append(f'#{sid}: no encontrado o ya procesado')
                 continue
-            ahora = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            ahora = now_mty().strftime('%Y-%m-%d %H:%M:%S')
             if accion == 'rechazar':
                 _exec(db,
                     "UPDATE solicitudes_registro_migrante"
@@ -3187,7 +3194,7 @@ def api_bulk_coord_resolver():
                      ticket['telefono_contacto'], ticket['enviado_por'])
                 )
                 nuevo_id = cur2.lastrowid
-                folio = f'MIG-{datetime.now().strftime("%Y%m")}-{nuevo_id:04d}'
+                folio = f'MIG-{now_mty().strftime("%Y%m")}-{nuevo_id:04d}'
                 _exec(db, 'UPDATE migrantes SET folio=%s WHERE id=%s', (folio, nuevo_id))
                 firmas = {}
                 if ticket['firma_op']:
@@ -3255,7 +3262,7 @@ def api_bulk_admin_resolver():
             if not ticket:
                 errores.append(f'#{sid}: no encontrado o ya procesado')
                 continue
-            ahora = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            ahora = now_mty().strftime('%Y-%m-%d %H:%M:%S')
             if accion == 'rechazar':
                 _exec(db,
                     "UPDATE solicitudes_registro_migrante"
@@ -3291,7 +3298,7 @@ def api_bulk_admin_resolver():
                      ticket['telefono_contacto'], ticket['enviado_por'])
                 )
                 nuevo_id = cur2.lastrowid
-                folio = f'MIG-{datetime.now().strftime("%Y%m")}-{nuevo_id:04d}'
+                folio = f'MIG-{now_mty().strftime("%Y%m")}-{nuevo_id:04d}'
                 _exec(db, 'UPDATE migrantes SET folio=%s WHERE id=%s', (folio, nuevo_id))
                 firmas = {}
                 if ticket['firma_op']:
@@ -3552,7 +3559,7 @@ def api_solicitar_eliminacion(mid):
         return jsonify(error='Ya existe una solicitud pendiente para este registro'), 400
 
     motivo = request.form.get('motivo', '').strip() or None
-    ahora  = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    ahora  = now_mty().strftime('%Y-%m-%d %H:%M:%S')
 
     # Firma EC del coordinador
     coord_keys = _exec(db,
@@ -3660,7 +3667,7 @@ def api_resolver_solicitud(sid):
         return jsonify(error='La solicitud ya fue resuelta'), 400
 
     nuevo_estado = 'aprobada' if aprobar else 'rechazada'
-    ahora = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    ahora = now_mty().strftime('%Y-%m-%d %H:%M:%S')
     _exec(db,
         'UPDATE solicitudes_eliminacion'
         ' SET estado=%s, resuelto_por=%s, fecha_resolucion=%s WHERE id=%s',
@@ -3845,7 +3852,7 @@ def arco_resolver_rect(sid):
         return jsonify(error='Solicitud no encontrada'), 404
     if sol['estado'] != 'pendiente':
         return jsonify(error='La solicitud ya fue resuelta'), 400
-    ahora = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    ahora = now_mty().strftime('%Y-%m-%d %H:%M:%S')
     if aprobar:
         try:
             cambios = _json.loads(sol['cambios_json'] or '{}')
@@ -3972,7 +3979,7 @@ def arco_resolver_cancelacion_op(sid):
     if sol['estado'] != 'pendiente':
         return jsonify(error='La solicitud ya fue resuelta'), 400
 
-    ahora = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    ahora = now_mty().strftime('%Y-%m-%d %H:%M:%S')
     nuevo_estado = 'aprobada' if aprobar else 'rechazada'
     _exec(db,
         'UPDATE solicitudes_cancelacion_op'
@@ -4053,7 +4060,7 @@ def arco_cancelacion(mid):
         return jsonify(error='Ya existe una solicitud de cancelación pendiente'), 400
     motivo = request.form.get('motivo', '').strip() or None
     priv_pem, pub_pem = _obtener_o_crear_claves_ec(db, g.usuario)
-    ahora = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    ahora = now_mty().strftime('%Y-%m-%d %H:%M:%S')
     mensaje = (f"CANCELACION|{mid}|{mig['folio']}"
                f"||{g.usuario}|{ahora}|{motivo or ''}")
     firma = firmar_mensaje(priv_pem, mensaje)
