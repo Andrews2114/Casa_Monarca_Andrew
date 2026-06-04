@@ -226,6 +226,7 @@ def obtener_db():
             database=DB_NAME,
             cursorclass=pymysql.cursors.DictCursor,
             autocommit=False
+            init_command="SET time_zone = 'America/Monterrey'"
         )
     return g._db
 
@@ -249,6 +250,7 @@ def inicializar_db():
         database=DB_NAME,
         cursorclass=pymysql.cursors.DictCursor,
         autocommit=False
+        init_command="SET time_zone = 'America/Monterrey'"
     )
     with open(SCHEMA_PATH, 'r', encoding='utf-8') as f:
         schema = f.read()
