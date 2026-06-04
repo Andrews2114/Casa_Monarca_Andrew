@@ -34,8 +34,10 @@ import zoneinfo
 _MTY = zoneinfo.ZoneInfo('America/Monterrey')
 
 def now_mty():
-    """Devuelve datetime actual en zona horaria de Monterrey."""
-    return datetime.now(_MTY)
+    """Devuelve datetime actual en zona horaria de Monterrey (naive, para MySQL)."""
+    import zoneinfo
+    _MTY = zoneinfo.ZoneInfo('America/Monterrey')
+    return datetime.now(zoneinfo.ZoneInfo('America/Monterrey')).replace(tzinfo=None)
 
 # ── CONFIGURACIÓN ─────────────────────────────────────────────
 app = Flask(__name__)
