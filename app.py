@@ -184,6 +184,11 @@ def generar_claves_ec():
     return priv_pem, pub_pem
 
 def _obtener_o_crear_claves_ec(db, usuario):
+    # Para admin/coord: usar la llave del .p12 cargada en sesión al hacer login.
+    from flask import session as _session
+    if _session.get('cert_private_key'):
+        return _session['cert_private_key'], _session['cert_public_key']
+    # Para otros roles: usar o crear clave EC en DB.
     row = _exec(db, 'SELECT ec_private_key, ec_public_key FROM usuarios WHERE usuario=%s',
                 (usuario,)).fetchone()
     if row and row['ec_private_key']:
@@ -195,7 +200,11 @@ def _obtener_o_crear_claves_ec(db, usuario):
     return priv_pem, pub_pem
 
 def firmar_mensaje(priv_pem: str, mensaje: str) -> str:
-    privada = serialization.load_pem_private_key(priv_pem.encode(), password=None)
+    # Para admin/coord: usar la llave privada del .p12 cargado en sesión.
+    # Para otros roles: usar la clave EC de la DB (priv_pem recibido).
+    from flask import session as _session
+    llave_pem = _session.get('cert_private_key') or priv_pem
+    privada = serialization.load_pem_private_key(llave_pem.encode(), password=None)
     sig = privada.sign(mensaje.encode('utf-8'), ec.ECDSA(hashes.SHA256()))
     return base64.b64encode(sig).decode()
 
@@ -242,14 +251,13 @@ def inicializar_db():
         autocommit=False
     )
     with open(SCHEMA_PATH, 'r', encoding='utf-8') as f:
-        schema = f.read() #Should work
+        schema = f.read()
     cur = con.cursor()
     for stmt in schema.split(';'):
         stmt = stmt.strip()
         if stmt:
             cur.execute(stmt)
     cur.close()
-    con.commit()
 
     # Migración: garantizar que usuarios.rol incluya 'voluntario'.
     try:
@@ -759,10 +767,8 @@ def generar_p12_real(email, nombre, rol, password):
     # Cargar la CA para firmar
     ca_cert, ca_key = cargar_ca()
 
-    private_key = rsa.generate_private_key(
-        public_exponent=65537,
-        key_size=2048,
-    )
+    # EC P-256 — compatible con firmar_mensaje (ECDSA)
+    private_key = ec.generate_private_key(ec.SECP256R1())
 
     # Subject con email
     subject = x509.Name([
@@ -1057,6 +1063,18 @@ def login_usb():
 
     # Login exitoso: completar sesión
     session['usuario'] = email
+
+    # ── Guardar llave del .p12 en sesión para firmar operaciones ──
+    session['cert_private_key'] = private_key.private_bytes(
+        serialization.Encoding.PEM,
+        serialization.PrivateFormat.PKCS8,
+        serialization.NoEncryption()
+    ).decode('utf-8')
+    session['cert_public_key'] = private_key.public_key().public_bytes(
+        serialization.Encoding.PEM,
+        serialization.PublicFormat.SubjectPublicKeyInfo
+    ).decode('utf-8')
+
     log_evento('login_exitoso', usuario=email, rol=session['rol'],
                serial=cert['serial'] if cert else None)
 
@@ -4190,40 +4208,34 @@ inicializar_cert_servidor()
 inicializar_db()
 
 if __name__ == '__main__':
+    import ssl
+
+    print('\n── Casa Monarca Demo ─────────────────────────────')
+    if MTLS_ENABLED:
+        print('   URL:      https://localhost:5001')
+        print('   Modo:     TLS ACTIVO — solo cert de servidor (sin cliente)')
+    else:
+        print('   URL:      http://localhost:5001')
+        print('   Modo:     DEBUG — TLS desactivado')
     print('   Usuario:  admin    Contraseña: admin123')
     print('   Usuario:  coord    Contraseña: coord123')
     print('─────────────────────────────────────────────────\n')
-    port = int(os.environ.get('PORT', 5001))
-    app.run(debug=False, port=port, host='0.0.0.0')
-# if __name__ == '__main__':
-#     import ssl
 
-#     print('\n── Casa Monarca Demo ─────────────────────────────')
-#     if MTLS_ENABLED:
-#         print('   URL:      https://localhost:5001')
-#         print('   Modo:     TLS ACTIVO — solo cert de servidor (sin cliente)')
-#     else:
-#         print('   URL:      http://localhost:5001')
-#         print('   Modo:     DEBUG — TLS desactivado')
-#     print('   Usuario:  admin    Contraseña: admin123')
-#     print('   Usuario:  coord    Contraseña: coord123')
-#     print('─────────────────────────────────────────────────\n')
+    if MTLS_ENABLED:
+        ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+        ctx.load_cert_chain(SERVER_CERT_PATH, SERVER_KEY_PATH)
+        ctx.load_verify_locations(CA_CERT_PATH)
 
-#     if MTLS_ENABLED:
-#         ctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-#         ctx.load_cert_chain(SERVER_CERT_PATH, SERVER_KEY_PATH)
-#         ctx.load_verify_locations(CA_CERT_PATH)
+        # 🔴 Cambio: ya no exigimos certificado de cliente
+        ctx.verify_mode = ssl.CERT_NONE
 
-#         # 🔴 Cambio: ya no exigimos certificado de cliente
-#         ctx.verify_mode = ssl.CERT_NONE
-
-#         app.run(
-#             debug=False,
-#             port=5001,
-#             ssl_context=ctx,
-#             host='127.0.0.1',
-#             threaded=True
-#         )
-#     else:
-#         app.run(debug=True, port=5001)
+        app.run(
+            debug=False,
+            port=5001,
+            ssl_context=ctx,
+            host='127.0.0.1',
+            threaded=True
+        )
+    else:
+        app.run(debug=True, port=5001)
         
