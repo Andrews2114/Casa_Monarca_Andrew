@@ -2095,7 +2095,7 @@ function renderTablaLista() {
       <td class="nombre-celda">${c.nombre}</td>
       <td>${badgeHtml(c.rol)}</td>
       <td class="serial-celda">#${c.serial}</td>
-      <td style="font-variant-numeric:tabular-nums;font-size:12px">${c.fecha}</td>
+      <td style="font-variant-numeric:tabular-nums;font-size:12px">${c.fecha ? new Date(c.fecha).toLocaleDateString('es-MX', {day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '—'}</td>
       <td>${_diasVenceHtml(c.dias_para_vencer)}</td>
       <td>${estadoHtml(c.estado)}</td>
       <td style="text-align:right;display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap;">
