@@ -34,11 +34,11 @@ import zoneinfo
 _MTY = zoneinfo.ZoneInfo('America/Monterrey')
 
 def now_mty():
-    """Devuelve datetime actual en zona horaria de Monterrey (naive, para MySQL)."""
-    import zoneinfo
-    _MTY = zoneinfo.ZoneInfo('America/Monterrey')
-    return datetime.now(zoneinfo.ZoneInfo('America/Monterrey')).replace(tzinfo=None)
-
+    """Devuelve datetime actual en zona horaria de Monterrey (UTC-6, naive para MySQL)."""
+    from datetime import timezone, timedelta
+    _MTY = timezone(timedelta(hours=-6))
+    return datetime.now(timezone.utc).astimezone(_MTY).replace(tzinfo=None)
+    
 # ── CONFIGURACIÓN ─────────────────────────────────────────────
 app = Flask(__name__)
 app.secret_key = 'demo-secret-key-cambiar-en-produccion'
@@ -3563,16 +3563,13 @@ def api_solicitar_eliminacion(mid):
     motivo = request.form.get('motivo', '').strip() or None
     ahora  = now_mty().strftime('%Y-%m-%d %H:%M:%S')
 
-    # Firma EC del coordinador
-    coord_keys = _exec(db,
-        'SELECT ec_private_key, ec_public_key FROM usuarios WHERE usuario=%s',
-        (g.usuario,)
-    ).fetchone()
+    # Firma EC del coordinador — usar llave del .p12 de sesión
     firma_coord = pub_pem = mensaje_firmado = None
-    if coord_keys and coord_keys['ec_private_key']:
+    priv_pem_firma, pub_pem_firma = _obtener_o_crear_claves_ec(db, g.usuario)
+    if priv_pem_firma:
         mensaje_firmado = f"SOLICITUD_ELIMINACION|{mid}|{mig['folio']}|{g.usuario}|{ahora}|{motivo or ''}"
-        firma_coord     = firmar_mensaje(coord_keys['ec_private_key'], mensaje_firmado)
-        pub_pem         = coord_keys['ec_public_key']
+        firma_coord     = firmar_mensaje(priv_pem_firma, mensaje_firmado)
+        pub_pem         = pub_pem_firma
 
     _exec(db,
         'INSERT INTO solicitudes_eliminacion'
