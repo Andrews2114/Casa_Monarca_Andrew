@@ -225,7 +225,7 @@ def obtener_db():
             user=DB_USER, password=DB_PASSWORD,
             database=DB_NAME,
             cursorclass=pymysql.cursors.DictCursor,
-            autocommit=False
+            autocommit=False,
             init_command="SET time_zone = 'America/Monterrey'"
         )
     return g._db
@@ -249,7 +249,7 @@ def inicializar_db():
         user=DB_USER, password=DB_PASSWORD,
         database=DB_NAME,
         cursorclass=pymysql.cursors.DictCursor,
-        autocommit=False
+        autocommit=False,
         init_command="SET time_zone = 'America/Monterrey'"
     )
     with open(SCHEMA_PATH, 'r', encoding='utf-8') as f:
