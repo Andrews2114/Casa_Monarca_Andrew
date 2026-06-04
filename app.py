@@ -1251,7 +1251,7 @@ def api_certificados():
     ).fetchall()
 
     certificados_ui = []
-    ahora = now_mty()
+    ahora = now_mty().replace(tzinfo=None)
     for c in rows:
         dias = None
         fe = c['fecha_expiracion']
